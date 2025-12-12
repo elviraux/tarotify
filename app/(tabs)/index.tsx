@@ -1,4 +1,4 @@
-// Home Screen - Daily Reading
+// Home Screen - Daily Reading with Lazy Image Generation
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
@@ -25,6 +25,21 @@ import {
 import { formatDateLong } from '@/utils/formatDate';
 import { UserProfile, DailyReading, CardReading } from '@/types';
 import { useTextGeneration } from '@fastshot/ai';
+import { useCardBack } from '@/hooks/useCardImages';
+import { getCardImageUri } from '@/utils/imageStorage';
+import { generateCardImage, generateCardBackImage } from '@/services/cardImageService';
+
+// Stable constellation positions
+const CONSTELLATION_POSITIONS: { left: `${number}%`, top: `${number}%`, opacity: number }[] = [
+  { left: '15%', top: '50%', opacity: 0.5 },
+  { left: '25%', top: '35%', opacity: 0.4 },
+  { left: '35%', top: '65%', opacity: 0.6 },
+  { left: '45%', top: '40%', opacity: 0.5 },
+  { left: '55%', top: '60%', opacity: 0.4 },
+  { left: '65%', top: '45%', opacity: 0.7 },
+  { left: '75%', top: '55%', opacity: 0.5 },
+  { left: '85%', top: '50%', opacity: 0.4 },
+];
 
 export default function HomeScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -32,6 +47,13 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Card images state
+  const [cardImages, setCardImages] = useState<Record<number, string | null>>({});
+  const [generatingCardIds, setGeneratingCardIds] = useState<Set<number>>(new Set());
+
+  // Card back hook
+  const cardBack = useCardBack();
 
   const { generateText, data: aiText } = useTextGeneration({
     onSuccess: () => {
@@ -46,6 +68,31 @@ export default function HomeScreen() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Generate card back if needed
+  useEffect(() => {
+    if (!cardBack.isReady && !cardBack.isLoading) {
+      generateCardBackImage();
+    }
+  }, [cardBack.isReady, cardBack.isLoading]);
+
+  // Load existing card images when reading changes
+  const loadExistingCardImages = useCallback(async (cards: CardReading[]) => {
+    const images: Record<number, string | null> = {};
+    for (const cardReading of cards) {
+      const uri = await getCardImageUri(cardReading.card.id);
+      if (uri) {
+        images[cardReading.card.id] = uri;
+      }
+    }
+    setCardImages(images);
+  }, []);
+
+  useEffect(() => {
+    if (dailyReading?.cards) {
+      loadExistingCardImages(dailyReading.cards);
+    }
+  }, [dailyReading?.id, dailyReading?.cards, loadExistingCardImages]);
 
   const loadData = async () => {
     try {
@@ -139,10 +186,48 @@ Provide a mystical interpretation in this exact JSON format (no other text):
 
       await saveDailyReading(reading);
       setDailyReading(reading);
+
+      // Load any existing images for the new cards
+      const images: Record<number, string | null> = {};
+      for (const card of selectedCards) {
+        const uri = await getCardImageUri(card.id);
+        if (uri) {
+          images[card.id] = uri;
+        }
+      }
+      setCardImages(images);
     } catch (error) {
       console.error('Error generating reading:', error);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // Trigger image generation when a card is revealed
+  const triggerCardImageGeneration = async (cardReading: CardReading) => {
+    const cardId = cardReading.card.id;
+
+    // Skip if already have image or already generating
+    if (cardImages[cardId] || generatingCardIds.has(cardId)) {
+      return;
+    }
+
+    // Mark as generating
+    setGeneratingCardIds(prev => new Set(prev).add(cardId));
+
+    try {
+      const uri = await generateCardImage(cardReading.card);
+      if (uri) {
+        setCardImages(prev => ({ ...prev, [cardId]: uri }));
+      }
+    } catch (error) {
+      console.error(`Error generating image for card ${cardId}:`, error);
+    } finally {
+      setGeneratingCardIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(cardId);
+        return newSet;
+      });
     }
   };
 
@@ -155,6 +240,9 @@ Provide a mystical interpretation in this exact JSON format (no other text):
     const updatedReading = { ...dailyReading, cards: updatedCards };
     setDailyReading(updatedReading);
     saveDailyReading(updatedReading);
+
+    // Trigger image generation for the revealed card
+    triggerCardImageGeneration(updatedCards[index]);
   };
 
   const allCardsRevealed = dailyReading?.cards.every(c => c.isRevealed) ?? false;
@@ -196,15 +284,15 @@ Provide a mystical interpretation in this exact JSON format (no other text):
 
           {/* Constellation decoration */}
           <View style={styles.constellationContainer}>
-            {[...Array(8)].map((_, i) => (
+            {CONSTELLATION_POSITIONS.map((pos, i) => (
               <View
                 key={i}
                 style={[
                   styles.constellationStar,
                   {
-                    left: `${15 + (i * 10)}%`,
-                    top: `${Math.sin(i) * 30 + 50}%`,
-                    opacity: 0.3 + Math.random() * 0.4,
+                    left: pos.left,
+                    top: pos.top,
+                    opacity: pos.opacity,
                   },
                 ]}
               />
@@ -241,7 +329,9 @@ Provide a mystical interpretation in this exact JSON format (no other text):
                       isRevealed={cardReading.isRevealed}
                       onPress={() => revealCard(index)}
                       shortDescription={cardReading.shortDescription}
-                      imageUri={null}
+                      imageUri={cardImages[cardReading.card.id] || null}
+                      cardBackUri={cardBack.uri}
+                      isGenerating={generatingCardIds.has(cardReading.card.id)}
                     />
                   ))}
                 </View>

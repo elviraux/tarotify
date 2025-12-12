@@ -6,14 +6,17 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import GradientBackground from '@/components/GradientBackground';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { getUserProfile } from '@/utils/storage';
+import { getGenerationStats } from '@/utils/imageStorage';
 import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
 import { UserProfile } from '@/types';
 
@@ -35,9 +38,11 @@ const zodiacEmojis: Record<string, string> = {
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deckStats, setDeckStats] = useState({ totalGenerated: 0, totalCards: 78 });
 
   useEffect(() => {
     loadProfile();
+    loadDeckStats();
   }, []);
 
   const loadProfile = async () => {
@@ -49,6 +54,19 @@ export default function ProfileScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadDeckStats = async () => {
+    try {
+      const stats = await getGenerationStats();
+      setDeckStats(stats);
+    } catch (error) {
+      console.error('Error loading deck stats:', error);
+    }
+  };
+
+  const navigateToDeckGallery = () => {
+    router.push('/deck-gallery');
   };
 
   const zodiacSign = profile?.dateOfBirth
@@ -161,9 +179,45 @@ export default function ProfileScreen() {
             </View>
           </Animated.View>
 
+          {/* Deck of Destiny Section */}
+          <Animated.View
+            entering={FadeInUp.delay(500).duration(600)}
+            style={styles.deckSection}
+          >
+            <TouchableOpacity
+              style={styles.deckCard}
+              onPress={navigateToDeckGallery}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['rgba(212, 175, 55, 0.15)', 'rgba(212, 175, 55, 0.05)']}
+                style={styles.deckGradient}
+              >
+                <View style={styles.deckIconContainer}>
+                  <Ionicons name="albums" size={32} color={Colors.celestialGold} />
+                </View>
+                <View style={styles.deckInfo}>
+                  <Text style={styles.deckTitle}>Deck of Destiny</Text>
+                  <Text style={styles.deckSubtitle}>
+                    {deckStats.totalGenerated} of {deckStats.totalCards} cards revealed
+                  </Text>
+                  <View style={styles.deckProgressBar}>
+                    <View
+                      style={[
+                        styles.deckProgressFill,
+                        { width: `${(deckStats.totalGenerated / deckStats.totalCards) * 100}%` }
+                      ]}
+                    />
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={Colors.celestialGold} />
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+
           {/* Mystical Quote */}
           <Animated.View
-            entering={FadeInUp.delay(600).duration(600)}
+            entering={FadeInUp.delay(700).duration(600)}
             style={styles.quoteSection}
           >
             <LinearGradient
@@ -283,6 +337,59 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textPrimary,
     fontFamily: 'System',
+  },
+  deckSection: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+  },
+  deckCard: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.card,
+  },
+  deckGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+  },
+  deckIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  deckInfo: {
+    flex: 1,
+  },
+  deckTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'serif',
+    color: Colors.celestialGold,
+    marginBottom: 2,
+  },
+  deckSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  deckProgressBar: {
+    height: 4,
+    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  deckProgressFill: {
+    height: '100%',
+    backgroundColor: Colors.celestialGold,
+    borderRadius: 2,
   },
   quoteSection: {
     paddingHorizontal: Spacing.lg,

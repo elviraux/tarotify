@@ -1,13 +1,14 @@
 // Tarot Card Component with 3D Flip Animation
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   Dimensions,
-  Image,
+  ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -30,7 +31,17 @@ interface Props {
   onPress: () => void;
   shortDescription?: string;
   imageUri?: string | null;
+  cardBackUri?: string | null;
+  isGenerating?: boolean;
 }
+
+// Generate stable star positions
+const generateStarPositions = () => {
+  return [...Array(5)].map((_, i) => ({
+    left: (i * 17 + 5) % 60 - 30,
+    top: (i * 23 + 10) % 60 - 30,
+  }));
+};
 
 export default function TarotCard({
   card,
@@ -39,8 +50,11 @@ export default function TarotCard({
   onPress,
   shortDescription,
   imageUri,
+  cardBackUri,
+  isGenerating = false,
 }: Props) {
   const flipProgress = useSharedValue(isRevealed ? 1 : 0);
+  const starPositions = useMemo(() => generateStarPositions(), []);
 
   React.useEffect(() => {
     flipProgress.value = withTiming(isRevealed ? 1 : 0, {
@@ -77,6 +91,90 @@ export default function TarotCard({
     future: 'Future',
   };
 
+  // Render card back content - either generated image or default design
+  const renderCardBackContent = () => {
+    if (cardBackUri) {
+      return (
+        <Image
+          source={{ uri: cardBackUri }}
+          style={styles.cardBackImage}
+          contentFit="cover"
+        />
+      );
+    }
+
+    // Default CSS-based card back design
+    return (
+      <LinearGradient
+        colors={['#1A1F2E', '#0B0F19', '#1A1F2E']}
+        style={styles.cardBackGradient}
+      >
+        <View style={styles.cardBackBorder}>
+          <View style={styles.cardBackInner}>
+            {/* Moon symbol */}
+            <View style={styles.moonContainer}>
+              <View style={styles.moon}>
+                <View style={styles.moonCrescent} />
+              </View>
+              <View style={styles.starsSmall}>
+                {starPositions.map((pos, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.smallStar,
+                      {
+                        left: pos.left,
+                        top: pos.top,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+            {/* Decorative pattern */}
+            <View style={styles.decorativePattern}>
+              <View style={styles.patternLine} />
+              <View style={styles.patternDiamond} />
+              <View style={styles.patternLine} />
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
+    );
+  };
+
+  // Render card front content
+  const renderCardFrontContent = () => {
+    if (isGenerating) {
+      return (
+        <View style={styles.cardImagePlaceholder}>
+          <ActivityIndicator size="small" color={Colors.celestialGold} />
+          <Text style={styles.generatingText}>Creating...</Text>
+        </View>
+      );
+    }
+
+    if (imageUri) {
+      return (
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.cardImage}
+          contentFit="cover"
+          transition={300}
+        />
+      );
+    }
+
+    // Placeholder for non-generated cards
+    return (
+      <View style={styles.cardImagePlaceholder}>
+        <Text style={styles.cardSymbol}>
+          {card.arcana === 'major' ? '\u2605' : '\u2726'}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -87,41 +185,7 @@ export default function TarotCard({
       >
         {/* Card Back (Face Down) */}
         <Animated.View style={[styles.card, styles.cardBack, frontAnimatedStyle]}>
-          <LinearGradient
-            colors={['#1A1F2E', '#0B0F19', '#1A1F2E']}
-            style={styles.cardBackGradient}
-          >
-            <View style={styles.cardBackBorder}>
-              <View style={styles.cardBackInner}>
-                {/* Moon symbol */}
-                <View style={styles.moonContainer}>
-                  <View style={styles.moon}>
-                    <View style={styles.moonCrescent} />
-                  </View>
-                  <View style={styles.starsSmall}>
-                    {[...Array(5)].map((_, i) => (
-                      <View
-                        key={i}
-                        style={[
-                          styles.smallStar,
-                          {
-                            left: Math.random() * 60 - 30,
-                            top: Math.random() * 60 - 30,
-                          },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </View>
-                {/* Decorative pattern */}
-                <View style={styles.decorativePattern}>
-                  <View style={styles.patternLine} />
-                  <View style={styles.patternDiamond} />
-                  <View style={styles.patternLine} />
-                </View>
-              </View>
-            </View>
-          </LinearGradient>
+          {renderCardBackContent()}
         </Animated.View>
 
         {/* Card Front (Face Up) */}
@@ -131,19 +195,7 @@ export default function TarotCard({
             style={styles.cardFrontGradient}
           >
             <View style={styles.cardFrontBorder}>
-              {imageUri ? (
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.cardImagePlaceholder}>
-                  <Text style={styles.cardSymbol}>
-                    {card.arcana === 'major' ? '\u2605' : '\u2726'}
-                  </Text>
-                </View>
-              )}
+              {renderCardFrontContent()}
               <View style={styles.cardNameContainer}>
                 <Text style={styles.cardName} numberOfLines={2}>
                   {card.name}
@@ -189,6 +241,10 @@ const styles = StyleSheet.create({
   },
   cardFront: {
     zIndex: 1,
+  },
+  cardBackImage: {
+    flex: 1,
+    borderRadius: BorderRadius.lg,
   },
   cardBackGradient: {
     flex: 1,
@@ -291,6 +347,12 @@ const styles = StyleSheet.create({
     fontSize: 40,
     color: Colors.celestialGold,
     opacity: 0.6,
+  },
+  generatingText: {
+    color: Colors.celestialGold,
+    fontSize: 8,
+    marginTop: 4,
+    opacity: 0.8,
   },
   cardNameContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
