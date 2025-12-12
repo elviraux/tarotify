@@ -71,6 +71,10 @@ export default function OnboardingScreen() {
     }
   }, [state.currentStep]);
 
+  const handleDateChange = useCallback((date: Date) => {
+    setState(prev => ({ ...prev, dateOfBirth: date }));
+  }, []);
+
   const isStepValid = () => {
     switch (state.currentStep) {
       case 1:
@@ -124,9 +128,7 @@ export default function OnboardingScreen() {
             <Text style={styles.subheading}>When were you born?</Text>
             <DateWheelPicker
               value={state.dateOfBirth || new Date()}
-              onChange={(date) =>
-                setState(prev => ({ ...prev, dateOfBirth: date }))
-              }
+              onChange={handleDateChange}
             />
           </Animated.View>
         );

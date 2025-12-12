@@ -50,8 +50,11 @@ export default function DateWheelPicker({ value, onChange }: Props) {
 
   useEffect(() => {
     const newDate = new Date(selectedYear, selectedMonth, selectedDay);
-    onChange(newDate);
-  }, [selectedMonth, selectedDay, selectedYear, onChange]);
+    // Only call onChange if the date has actually changed to prevent infinite loops
+    if (newDate.getTime() !== value.getTime()) {
+      onChange(newDate);
+    }
+  }, [selectedMonth, selectedDay, selectedYear, onChange, value]);
 
   const displayDate = new Date(selectedYear, selectedMonth, selectedDay);
 
