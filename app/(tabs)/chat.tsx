@@ -1,0 +1,388 @@
+// The Oracle - AI Astrologist Chat Screen
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  ActivityIndicator,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useTextGeneration } from '@fastshot/ai';
+import GradientBackground from '@/components/GradientBackground';
+import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { getUserProfile } from '@/utils/storage';
+import { UserProfile } from '@/types';
+import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
+
+interface Message {
+  id: string;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+}
+
+export default function ChatScreen() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState('');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+
+  const { generateText, isLoading } = useTextGeneration({
+    onSuccess: (response) => {
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        text: response,
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    },
+    onError: (error) => {
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: 'The stars are momentarily obscured... Please try again.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      console.error('AI Error:', error);
+    },
+  });
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    const profile = await getUserProfile();
+    setUserProfile(profile);
+
+    // Create welcome message
+    const firstName = profile?.fullName?.split(' ')[0] || 'Seeker';
+    const welcomeMessage: Message = {
+      id: 'welcome',
+      text: `I sense you have questions, ${firstName}. The celestial bodies have aligned to guide you today. Ask, and the stars shall answer.`,
+      isUser: false,
+      timestamp: new Date(),
+    };
+    setMessages([welcomeMessage]);
+    setIsInitialized(true);
+  };
+
+  const buildPrompt = useCallback((userMessage: string): string => {
+    const contextParts: string[] = [];
+
+    // Build user context
+    if (userProfile) {
+      const zodiac = userProfile.dateOfBirth ? getZodiacSign(userProfile.dateOfBirth) : null;
+      contextParts.push(`User: ${userProfile.fullName}`);
+      if (userProfile.dateOfBirth) {
+        contextParts.push(`Birth Date: ${formatDateLong(userProfile.dateOfBirth)}`);
+      }
+      if (zodiac) {
+        contextParts.push(`Zodiac Sign: ${zodiac}`);
+      }
+      if (userProfile.timeOfBirth) {
+        contextParts.push(`Birth Time: ${userProfile.timeOfBirth}`);
+      }
+      if (userProfile.placeOfBirth) {
+        contextParts.push(`Birth Place: ${userProfile.placeOfBirth}`);
+      }
+    }
+
+    // Build conversation history (last 6 messages for context)
+    const recentMessages = messages.slice(-6);
+    const historyParts = recentMessages.map(msg =>
+      `${msg.isUser ? 'User' : 'Oracle'}: ${msg.text}`
+    );
+
+    const systemPrompt = `You are The Oracle, a wise, mystical, and empathetic astrologist. You speak with an air of ancient wisdom and cosmic insight. Your responses are concise yet profound, weaving astrological knowledge with genuine care for the seeker. Use the user's birth details to personalize your guidance. Maintain a mystical tone without being overly theatrical. Keep responses to 2-3 sentences unless a longer explanation is truly needed.`;
+
+    const fullPrompt = `${systemPrompt}
+
+${contextParts.length > 0 ? 'Seeker Information:\n' + contextParts.join('\n') : ''}
+
+${historyParts.length > 0 ? 'Recent Conversation:\n' + historyParts.join('\n') : ''}
+
+User's Question: ${userMessage}
+
+Respond as The Oracle:`;
+
+    return fullPrompt;
+  }, [userProfile, messages]);
+
+  const handleSend = useCallback(() => {
+    if (!inputText.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText.trim(),
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const prompt = buildPrompt(inputText.trim());
+    setInputText('');
+    Keyboard.dismiss();
+
+    generateText(prompt);
+  }, [inputText, isLoading, buildPrompt, generateText]);
+
+  const scrollToEnd = () => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  useEffect(() => {
+    scrollToEnd();
+  }, [messages]);
+
+  const renderMessage = ({ item }: { item: Message }) => (
+    <View
+      style={[
+        styles.messageBubble,
+        item.isUser ? styles.userBubble : styles.aiBubble,
+      ]}
+    >
+      {!item.isUser && (
+        <View style={styles.aiIconContainer}>
+          <Ionicons name="sparkles" size={14} color={Colors.celestialGold} />
+        </View>
+      )}
+      <Text style={[styles.messageText, item.isUser ? styles.userText : styles.aiText]}>
+        {item.text}
+      </Text>
+    </View>
+  );
+
+  if (!isInitialized) {
+    return (
+      <GradientBackground>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.celestialGold} />
+            <Text style={styles.loadingText}>Consulting the stars...</Text>
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
+
+  return (
+    <GradientBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerIcon}>
+              <Ionicons name="moon" size={24} color={Colors.celestialGold} />
+            </View>
+            <Text style={styles.headerTitle}>The Oracle</Text>
+            <View style={styles.headerSubtitleContainer}>
+              <Text style={styles.headerSubtitle}>Ask the Stars</Text>
+            </View>
+          </View>
+
+          {/* Messages List */}
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.messagesList}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={scrollToEnd}
+          />
+
+          {/* Typing Indicator */}
+          {isLoading && (
+            <View style={styles.typingContainer}>
+              <Ionicons name="sparkles" size={14} color={Colors.celestialGold} />
+              <Text style={styles.typingText}>Divining the cosmos...</Text>
+            </View>
+          )}
+
+          {/* Input Area */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask the Oracle..."
+                placeholderTextColor={Colors.moonlightGray}
+                multiline
+                maxLength={500}
+                returnKeyType="send"
+                blurOnSubmit={true}
+                onSubmitEditing={handleSend}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+                ]}
+                onPress={handleSend}
+                disabled={!inputText.trim() || isLoading}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={inputText.trim() && !isLoading ? Colors.textPrimary : Colors.moonlightGray}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </GradientBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: Colors.textSecondary,
+    fontSize: 16,
+    marginTop: Spacing.md,
+    fontStyle: 'italic',
+  },
+  header: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(221, 133, 216, 0.2)',
+  },
+  headerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(221, 133, 216, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    fontFamily: 'serif',
+    color: Colors.textPrimary,
+  },
+  headerSubtitleContainer: {
+    marginTop: Spacing.xs,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: Colors.celestialGold,
+    fontStyle: 'italic',
+  },
+  messagesList: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+  },
+  messageBubble: {
+    maxWidth: '85%',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    borderRadius: BorderRadius.lg,
+    marginVertical: Spacing.xs,
+  },
+  userBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: 'rgba(221, 133, 216, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.5)',
+  },
+  aiBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.cardBackground,
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.2)',
+  },
+  aiIconContainer: {
+    marginBottom: Spacing.xs,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  userText: {
+    color: Colors.textPrimary,
+  },
+  aiText: {
+    color: Colors.textPrimary,
+    fontFamily: 'serif',
+  },
+  typingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  typingText: {
+    color: Colors.celestialGold,
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginLeft: Spacing.sm,
+  },
+  inputContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(221, 133, 216, 0.2)',
+    backgroundColor: 'rgba(11, 15, 25, 0.8)',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: Colors.inputBackground,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.inputBorder,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  input: {
+    flex: 1,
+    color: Colors.textPrimary,
+    fontSize: 16,
+    maxHeight: 100,
+    paddingVertical: Spacing.sm,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(221, 133, 216, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: Spacing.sm,
+  },
+  sendButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+});
