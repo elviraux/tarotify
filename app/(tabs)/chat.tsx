@@ -17,8 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTextGeneration } from '@fastshot/ai';
 import GradientBackground from '@/components/GradientBackground';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { getUserProfile } from '@/utils/storage';
-import { UserProfile } from '@/types';
+import { getUserProfile, getDailyReading, getTodayDateString } from '@/utils/storage';
+import { UserProfile, DailyReading } from '@/types';
 import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
 
 interface Message {
@@ -32,6 +32,7 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [dailyReading, setDailyReading] = useState<DailyReading | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
@@ -65,11 +66,20 @@ export default function ChatScreen() {
     const profile = await getUserProfile();
     setUserProfile(profile);
 
+    // Load daily reading if it exists for today
+    const reading = await getDailyReading();
+    if (reading && reading.date === getTodayDateString()) {
+      setDailyReading(reading);
+    }
+
     // Create welcome message
     const firstName = profile?.fullName?.split(' ')[0] || 'Seeker';
+    const hasReading = reading && reading.date === getTodayDateString();
     const welcomeMessage: Message = {
       id: 'welcome',
-      text: `I sense you have questions, ${firstName}. The celestial bodies have aligned to guide you today. Ask, and the stars shall answer.`,
+      text: hasReading
+        ? `I sense you have questions, ${firstName}. I see you've already drawn your cards today. The celestial bodies have aligned to guide you. Ask me about your reading, and the stars shall illuminate their meaning.`
+        : `I sense you have questions, ${firstName}. The celestial bodies have aligned to guide you today. Ask, and the stars shall answer.`,
       isUser: false,
       timestamp: new Date(),
     };
@@ -98,17 +108,50 @@ export default function ChatScreen() {
       }
     }
 
+    // Build daily reading context if available
+    const readingParts: string[] = [];
+    if (dailyReading && dailyReading.cards.length > 0) {
+      readingParts.push('Today\'s Daily Tarot Reading:');
+
+      dailyReading.cards.forEach((cardReading) => {
+        const positionLabel = cardReading.position.charAt(0).toUpperCase() + cardReading.position.slice(1);
+        const card = cardReading.card;
+        readingParts.push(`- ${positionLabel}: ${card.name}`);
+        readingParts.push(`  Keywords: ${card.keywords.join(', ')}`);
+        readingParts.push(`  Meaning: ${card.uprightMeaning}`);
+        if (cardReading.shortDescription) {
+          readingParts.push(`  Brief: ${cardReading.shortDescription}`);
+        }
+      });
+
+      if (dailyReading.mainExplanation) {
+        readingParts.push(`\nOverall Reading Interpretation: ${dailyReading.mainExplanation}`);
+      }
+    }
+
     // Build conversation history (last 6 messages for context)
     const recentMessages = messages.slice(-6);
     const historyParts = recentMessages.map(msg =>
       `${msg.isUser ? 'User' : 'Oracle'}: ${msg.text}`
     );
 
-    const systemPrompt = `You are The Oracle, a wise, mystical, and empathetic astrologist. You speak with an air of ancient wisdom and cosmic insight. Your responses are concise yet profound, weaving astrological knowledge with genuine care for the seeker. Use the user's birth details to personalize your guidance. Maintain a mystical tone without being overly theatrical. Keep responses to 2-3 sentences unless a longer explanation is truly needed.`;
+    const hasDailyReading = dailyReading && dailyReading.cards.length > 0;
+
+    const systemPrompt = `You are The Oracle, a wise, mystical, and empathetic astrologist and tarot reader. You speak with an air of ancient wisdom and cosmic insight. Your responses are concise yet profound, weaving astrological and tarot knowledge with genuine care for the seeker.
+
+${hasDailyReading ? `You have access to the user's current daily tarot reading. When discussing their cards:
+- Analyze the DYNAMIC INTERPLAY between the cards (e.g., how the Past card influences the Present context, how Present leads to Future).
+- Do not just define each card individually - weave their meanings together into a cohesive narrative.
+- Reference specific cards by name when giving advice.
+- Connect the card meanings to the user's zodiac sign and birth details when relevant.` : ''}
+
+Use the user's birth details to personalize your guidance. Maintain a mystical tone without being overly theatrical. Keep responses to 2-3 sentences unless a longer explanation is truly needed.`;
 
     const fullPrompt = `${systemPrompt}
 
 ${contextParts.length > 0 ? 'Seeker Information:\n' + contextParts.join('\n') : ''}
+
+${readingParts.length > 0 ? readingParts.join('\n') : ''}
 
 ${historyParts.length > 0 ? 'Recent Conversation:\n' + historyParts.join('\n') : ''}
 
@@ -117,7 +160,7 @@ User's Question: ${userMessage}
 Respond as The Oracle:`;
 
     return fullPrompt;
-  }, [userProfile, messages]);
+  }, [userProfile, dailyReading, messages]);
 
   const handleSend = useCallback(() => {
     if (!inputText.trim() || isLoading) return;
