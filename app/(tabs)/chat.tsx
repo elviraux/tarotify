@@ -11,7 +11,9 @@ import {
   Platform,
   Keyboard,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTextGeneration } from '@fastshot/ai';
@@ -29,6 +31,15 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
 }
+
+// Suggestion chips for new conversations
+const SUGGESTION_CHIPS = [
+  'What does my Life Path number mean?',
+  'Tell me about my Big Three.',
+  'What energy should I focus on today?',
+  'Explain my Soul Urge number.',
+  'How do my Sun and Moon work together?',
+];
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -185,6 +196,26 @@ Respond as The Oracle:`;
     generateText(prompt);
   }, [inputText, isLoading, buildPrompt, generateText]);
 
+  // Handle suggestion chip tap
+  const handleChipPress = useCallback((chipText: string) => {
+    if (isLoading) return;
+
+    hapticLight();
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: chipText,
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const prompt = buildPrompt(chipText);
+    Keyboard.dismiss();
+
+    generateText(prompt);
+  }, [isLoading, buildPrompt, generateText]);
+
   const scrollToEnd = () => {
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
@@ -269,6 +300,32 @@ Respond as The Oracle:`;
               <Ionicons name="sparkles" size={14} color={Colors.celestialGold} />
               <Text style={styles.typingText}>Divining the cosmos...</Text>
             </View>
+          )}
+
+          {/* Suggestion Chips - only show at start of conversation */}
+          {messages.length <= 1 && !isLoading && (
+            <Animated.View
+              entering={FadeIn.duration(400)}
+              exiting={FadeOut.duration(200)}
+              style={styles.suggestionsContainer}
+            >
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.suggestionsContent}
+              >
+                {SUGGESTION_CHIPS.map((chip, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionChip}
+                    onPress={() => handleChipPress(chip)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.suggestionChipText}>{chip}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </Animated.View>
           )}
 
           {/* Input Area */}
@@ -439,5 +496,25 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  suggestionsContainer: {
+    paddingVertical: Spacing.sm,
+  },
+  suggestionsContent: {
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+  },
+  suggestionChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.celestialGold,
+    backgroundColor: 'transparent',
+  },
+  suggestionChipText: {
+    color: Colors.celestialGold,
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
