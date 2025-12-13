@@ -63,6 +63,7 @@ export default function ProfileScreen() {
   useEffect(() => {
     loadProfile();
     loadDeckStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
@@ -147,6 +148,10 @@ export default function ProfileScreen() {
     router.push('/deck-gallery');
   };
 
+  const handleGoBack = () => {
+    router.back();
+  };
+
   const zodiacSign = profile?.dateOfBirth
     ? getZodiacSign(profile.dateOfBirth)
     : null;
@@ -181,6 +186,15 @@ export default function ProfileScreen() {
             >
               {/* Header */}
               <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
+                {/* Back Button */}
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={handleGoBack}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="chevron-back" size={28} color={Colors.celestialGold} />
+                </TouchableOpacity>
+
                 <Text style={styles.title}>Your Profile</Text>
 
                 {/* Edit/Save/Cancel Buttons */}
@@ -500,18 +514,29 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
   },
   header: {
-    paddingTop: Spacing.lg,
+    paddingTop: Spacing.md,
     paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    left: Spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.2)',
   },
   title: {
     fontSize: 28,
     fontWeight: '600',
     fontFamily: 'serif',
     color: Colors.textPrimary,
-    flex: 1,
     textAlign: 'center',
   },
   headerActions: {

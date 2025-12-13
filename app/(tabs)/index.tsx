@@ -8,10 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Share,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import GradientBackground from '@/components/GradientBackground';
 import TarotCard from '@/components/TarotCard';
 import GoldButton from '@/components/GoldButton';
@@ -363,11 +366,22 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
         >
           {/* Header */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.header}>
-            <Text style={styles.title}>
-              Your Daily Reading,{'\n'}
-              <Text style={styles.titleName}>{userProfile?.fullName || 'Seeker'}</Text>
-            </Text>
-            <Text style={styles.date}>{formatDateLong(new Date())}</Text>
+            {/* Profile Button */}
+            <TouchableOpacity
+              style={styles.profileButton}
+              onPress={() => router.push('/profile')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="person-circle-outline" size={30} color={Colors.celestialGold} />
+            </TouchableOpacity>
+
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>
+                Your Daily Reading,{'\n'}
+                <Text style={styles.titleName}>{userProfile?.fullName || 'Seeker'}</Text>
+              </Text>
+              <Text style={styles.date}>{formatDateLong(new Date())}</Text>
+            </View>
           </Animated.View>
 
           {/* Constellation decoration */}
@@ -495,9 +509,26 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
   },
   header: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     paddingTop: Spacing.lg,
     paddingHorizontal: Spacing.lg,
+  },
+  profileButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.2)',
+    marginRight: Spacing.sm,
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
+    paddingRight: 44 + Spacing.sm, // Balance for profile button
   },
   title: {
     fontSize: 28,
