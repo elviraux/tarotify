@@ -14,8 +14,8 @@ import { router } from 'expo-router';
 import Animated, {
   FadeIn,
   FadeOut,
-  SlideInRight,
-  SlideOutLeft,
+  FadeInRight,
+  FadeOutLeft,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GradientBackground from '@/components/GradientBackground';
@@ -103,8 +103,8 @@ export default function OnboardingScreen() {
         return (
           <Animated.View
             key="step1"
-            entering={SlideInRight.duration(400)}
-            exiting={SlideOutLeft.duration(400)}
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Begin Your{'\n'}Journey</Text>
@@ -129,8 +129,8 @@ export default function OnboardingScreen() {
         return (
           <Animated.View
             key="step2"
-            entering={SlideInRight.duration(400)}
-            exiting={SlideOutLeft.duration(400)}
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Your Celestial{'\n'}Alignment</Text>
@@ -146,8 +146,8 @@ export default function OnboardingScreen() {
         return (
           <Animated.View
             key="step3"
-            entering={SlideInRight.duration(400)}
-            exiting={SlideOutLeft.duration(400)}
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Hour of{'\n'}Arrival</Text>
@@ -163,8 +163,8 @@ export default function OnboardingScreen() {
         return (
           <Animated.View
             key="step4"
-            entering={SlideInRight.duration(400)}
-            exiting={SlideOutLeft.duration(400)}
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Place of{'\n'}Origin</Text>
