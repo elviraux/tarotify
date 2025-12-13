@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Share,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +23,8 @@ import {
   getUserProfile,
   getDailyReading,
   saveDailyReading,
+  getPartnerDailyReading,
+  savePartnerDailyReading,
   getTodayDateString,
   saveToHistory,
 } from '@/utils/storage';
@@ -31,6 +34,9 @@ import { useTextGeneration } from '@fastshot/ai';
 import { useCardBack } from '@/hooks/useCardImages';
 import { getCardImageUri } from '@/utils/imageStorage';
 import { generateCardImage, generateCardBackImage } from '@/services/cardImageService';
+
+// Reading mode type
+type ReadingMode = 'me' | 'partner';
 
 // Stable constellation positions
 const CONSTELLATION_POSITIONS: { left: `${number}%`, top: `${number}%`, opacity: number }[] = [
@@ -50,6 +56,7 @@ export default function TarotScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [readingMode, setReadingMode] = useState<ReadingMode>('me');
 
   // Card images state
   const [cardImages, setCardImages] = useState<Record<number, string | null>>({});
@@ -59,11 +66,17 @@ export default function TarotScreen() {
   const pendingCardsRef = useRef<TarotCardData[] | null>(null);
   // Ref to store userProfile for use in callbacks (avoids stale closure)
   const userProfileRef = useRef<UserProfile | null>(null);
+  // Ref to store readingMode for use in callbacks (avoids stale closure)
+  const readingModeRef = useRef<ReadingMode>('me');
 
-  // Keep userProfileRef in sync
+  // Keep refs in sync
   useEffect(() => {
     userProfileRef.current = userProfile;
   }, [userProfile]);
+
+  useEffect(() => {
+    readingModeRef.current = readingMode;
+  }, [readingMode]);
 
   // Card back hook
   const cardBack = useCardBack();
@@ -117,8 +130,9 @@ export default function TarotScreen() {
     }));
 
     // Create and save the reading
+    const currentMode = readingModeRef.current;
     const reading: DailyReading = {
-      id: `reading_${Date.now()}`,
+      id: `reading_${currentMode}_${Date.now()}`,
       date: getTodayDateString(),
       cards: cardReadings,
       mainExplanation: interpretations.dailyMessage,
@@ -126,8 +140,13 @@ export default function TarotScreen() {
       createdAt: new Date(),
     };
 
-    await saveDailyReading(reading);
-    await saveToHistory(reading);
+    // Save to correct storage based on mode
+    if (currentMode === 'partner') {
+      await savePartnerDailyReading(reading);
+    } else {
+      await saveDailyReading(reading);
+      await saveToHistory(reading);
+    }
     setDailyReading(reading);
 
     // Load any existing images for the new cards
@@ -170,6 +189,7 @@ export default function TarotScreen() {
   // Load user profile and daily reading
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Generate card back if needed
@@ -197,16 +217,21 @@ export default function TarotScreen() {
     }
   }, [dailyReading?.id, dailyReading?.cards, loadExistingCardImages]);
 
-  const loadData = async () => {
+  const loadData = async (mode: ReadingMode = readingMode) => {
     try {
       setIsLoading(true);
       const profile = await getUserProfile();
       setUserProfile(profile);
 
-      // Check if we have a reading for today
-      const existingReading = await getDailyReading();
+      // Check if we have a reading for today based on mode
+      const existingReading = mode === 'me'
+        ? await getDailyReading()
+        : await getPartnerDailyReading();
+
       if (existingReading && existingReading.date === getTodayDateString()) {
         setDailyReading(existingReading);
+      } else {
+        setDailyReading(null);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -217,9 +242,19 @@ export default function TarotScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData();
+    await loadData(readingMode);
     setRefreshing(false);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readingMode]);
+
+  // Handle mode change
+  const handleModeChange = (mode: ReadingMode) => {
+    if (mode !== readingMode) {
+      setReadingMode(mode);
+      setDailyReading(null); // Clear current reading
+      loadData(mode);
+    }
+  };
 
   const generateDailyReading = async () => {
     if (!userProfile) return;
@@ -233,9 +268,18 @@ export default function TarotScreen() {
       pendingCardsRef.current = selectedCards;
 
       // Generate AI interpretations with shorter descriptions for card layout
-      const prompt = `You are a mystical tarot reader. The seeker is ${userProfile.fullName}, born on ${formatDateLong(userProfile.dateOfBirth)}.
+      const isPartnerReading = readingMode === 'partner';
+      const seekerContext = isPartnerReading
+        ? `You are a mystical tarot reader. ${userProfile.fullName} is seeking guidance for their partner.`
+        : `You are a mystical tarot reader. The seeker is ${userProfile.fullName}, born on ${formatDateLong(userProfile.dateOfBirth)}.`;
 
-For their daily reading, they drew these three cards:
+      const guidanceContext = isPartnerReading
+        ? 'as guidance for the partner today, focusing on how they might support and understand their partner better'
+        : 'as personalized guidance for today based on their birth date and the specific cards drawn';
+
+      const prompt = `${seekerContext}
+
+For ${isPartnerReading ? "their partner's" : 'their'} daily reading, these three cards were drawn:
 1. PAST: ${selectedCards[0].name} - ${selectedCards[0].uprightMeaning}
 2. PRESENT: ${selectedCards[1].name} - ${selectedCards[1].uprightMeaning}
 3. FUTURE: ${selectedCards[2].name} - ${selectedCards[2].uprightMeaning}
@@ -245,7 +289,7 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
   "past": "Brief insight for past card (max 15 words)",
   "present": "Brief insight for present card (max 15 words)",
   "future": "Brief insight for future card (max 15 words)",
-  "dailyMessage": "A paragraph (60-80 words) weaving all three cards together as personalized guidance for today based on their birth date and the specific cards drawn"
+  "dailyMessage": "A paragraph (60-80 words) weaving all three cards together ${guidanceContext}"
 }`;
 
       // Trigger AI generation - result will be handled in onSuccess callback
@@ -298,7 +342,13 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
 
     const updatedReading = { ...dailyReading, cards: updatedCards };
     setDailyReading(updatedReading);
-    saveDailyReading(updatedReading);
+
+    // Save to correct storage based on mode
+    if (readingMode === 'partner') {
+      savePartnerDailyReading(updatedReading);
+    } else {
+      saveDailyReading(updatedReading);
+    }
 
     // Trigger image generation for the revealed card
     triggerCardImageGeneration(updatedCards[index]);
@@ -317,7 +367,11 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
     // Get the Present card image for sharing (the central, most prominent card)
     const presentCardImageUri = presentCard ? cardImages[presentCard.card.id] : null;
 
-    const shareMessage = `✨ My Daily Tarot Reading ✨
+    const readingTitle = readingMode === 'partner'
+      ? "✨ Partner's Daily Tarot Reading ✨"
+      : '✨ My Daily Tarot Reading ✨';
+
+    const shareMessage = `${readingTitle}
 
 🃏 Past: ${pastCard?.card.name || ''}
 🃏 Present: ${presentCard?.card.name || ''}
@@ -333,7 +387,7 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
     } catch (error) {
       console.error('Error sharing reading:', error);
     }
-  }, [dailyReading, cardImages]);
+  }, [dailyReading, cardImages, readingMode]);
 
   if (isLoading) {
     return (
@@ -365,10 +419,50 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
           <Animated.View entering={FadeIn.duration(800)} style={styles.header}>
             <View style={styles.headerContent}>
               <Text style={styles.title}>
-                Your Daily Reading,{'\n'}
-                <Text style={styles.titleName}>{userProfile?.fullName || 'Seeker'}</Text>
+                {readingMode === 'partner' ? "Partner's Daily Reading" : 'Your Daily Reading,'}{'\n'}
+                <Text style={styles.titleName}>
+                  {readingMode === 'partner' ? `from ${userProfile?.fullName || 'Seeker'}` : userProfile?.fullName || 'Seeker'}
+                </Text>
               </Text>
               <Text style={styles.date}>{formatDateLong(new Date())}</Text>
+            </View>
+
+            {/* Segmented Control */}
+            <View style={styles.segmentedControl}>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  readingMode === 'me' && styles.segmentButtonActive,
+                ]}
+                onPress={() => handleModeChange('me')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.segmentButtonText,
+                    readingMode === 'me' && styles.segmentButtonTextActive,
+                  ]}
+                >
+                  For Me
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  readingMode === 'partner' && styles.segmentButtonActive,
+                ]}
+                onPress={() => handleModeChange('partner')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.segmentButtonText,
+                    readingMode === 'partner' && styles.segmentButtonTextActive,
+                  ]}
+                >
+                  For Partner
+                </Text>
+              </TouchableOpacity>
             </View>
           </Animated.View>
 
@@ -519,6 +613,37 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: Spacing.sm,
     fontFamily: 'System',
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: BorderRadius.lg,
+    padding: 4,
+    marginTop: Spacing.lg,
+    marginHorizontal: Spacing.md,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentButtonActive: {
+    backgroundColor: 'rgba(221, 133, 216, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.4)',
+  },
+  segmentButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    fontFamily: 'System',
+  },
+  segmentButtonTextActive: {
+    color: Colors.celestialGold,
+    fontWeight: '600',
   },
   constellationContainer: {
     height: 60,

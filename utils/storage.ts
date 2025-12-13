@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   USER_PROFILE: '@tarotify_user_profile',
   IS_ONBOARDED: '@tarotify_is_onboarded',
   DAILY_READING: '@tarotify_daily_reading',
+  PARTNER_DAILY_READING: '@tarotify_partner_daily_reading',
   STORED_IMAGES: '@tarotify_stored_images',
   CARD_BACK_IMAGE: '@tarotify_card_back_image',
   CHART_ANALYSIS: '@tarotify_chart_analysis',
@@ -101,6 +102,32 @@ export const hasReadingForToday = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Error checking today\'s reading:', error);
     return false;
+  }
+};
+
+// Partner Daily Reading Storage
+export const savePartnerDailyReading = async (reading: DailyReading): Promise<void> => {
+  try {
+    const jsonValue = JSON.stringify(reading);
+    await AsyncStorage.setItem(STORAGE_KEYS.PARTNER_DAILY_READING, jsonValue);
+  } catch (error) {
+    console.error('Error saving partner daily reading:', error);
+    throw error;
+  }
+};
+
+export const getPartnerDailyReading = async (): Promise<DailyReading | null> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.PARTNER_DAILY_READING);
+    if (jsonValue != null) {
+      const reading = JSON.parse(jsonValue);
+      reading.createdAt = new Date(reading.createdAt);
+      return reading;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting partner daily reading:', error);
+    return null;
   }
 };
 
