@@ -8,12 +8,14 @@ import {
   ActivityIndicator,
   Dimensions,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTextGeneration } from '@fastshot/ai';
+import { router } from 'expo-router';
 
 import GradientBackground from '@/components/GradientBackground';
 import GoldButton from '@/components/GoldButton';
@@ -38,6 +40,73 @@ interface ChartData {
   moonSign: string;
   risingSign: string | null;
   analysis: string;
+}
+
+// Helper to clean analysis text - handles stored JSON or raw text
+const cleanAnalysisText = (text: string): string => {
+  if (!text) return '';
+
+  // Check if this looks like JSON (starts with { or contains "analysis":)
+  const trimmed = text.trim();
+  if (trimmed.startsWith('{') || trimmed.includes('"analysis"')) {
+    try {
+      // Try to extract JSON
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const jsonStr = text.substring(firstBrace, lastBrace + 1);
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.analysis) {
+          // Clean up the analysis text
+          return parsed.analysis
+            .replace(/\\n\\n/g, '\n\n')
+            .replace(/\\n/g, '\n')
+            .trim();
+        }
+      }
+    } catch {
+      // If JSON parsing fails, continue to clean as raw text
+    }
+  }
+
+  // Clean up any escaped newlines in raw text
+  return text
+    .replace(/\\n\\n/g, '\n\n')
+    .replace(/\\n/g, '\n')
+    .trim();
+};
+
+// Collapsible Section Component
+interface CollapsibleSectionProps {
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}
+
+function CollapsibleSection({ title, icon, children, defaultOpen = false }: CollapsibleSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <View style={styles.collapsibleSection}>
+      <TouchableOpacity
+        style={styles.collapsibleHeader}
+        onPress={() => setIsOpen(!isOpen)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.collapsibleHeaderLeft}>
+          <Ionicons name={icon} size={18} color={Colors.celestialGold} />
+          <Text style={styles.collapsibleTitle}>{title}</Text>
+        </View>
+        <Ionicons
+          name={isOpen ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color={Colors.moonlightGray}
+        />
+      </TouchableOpacity>
+      {isOpen && <View style={styles.collapsibleContent}>{children}</View>}
+    </View>
+  );
 }
 
 export default function ChartsScreen() {
@@ -154,7 +223,13 @@ export default function ChartsScreen() {
 
       const storedAnalysis = await getChartAnalysis();
       if (storedAnalysis) {
-        setAnalysis(storedAnalysis);
+        // Clean the stored analysis in case it's raw JSON from before
+        const cleanedAnalysis = cleanAnalysisText(storedAnalysis);
+        setAnalysis(cleanedAnalysis);
+        // Re-save the cleaned version
+        if (cleanedAnalysis !== storedAnalysis) {
+          await saveChartAnalysis(cleanedAnalysis);
+        }
       }
     } catch (error) {
       console.error('Error loading chart data:', error);
@@ -307,15 +382,95 @@ CRITICAL: Output ONLY the JSON object. No text before or after. The analysis fie
           <Animated.View entering={FadeInUp.delay(600).duration(600)} style={styles.section}>
             <Text style={styles.sectionTitle}>Deep Analysis</Text>
             {analysis ? (
-              <LinearGradient
-                colors={['rgba(221, 133, 216, 0.15)', 'rgba(221, 133, 216, 0.05)']}
-                style={styles.analysisContainer}
-              >
-                <FormattedText
-                  text={analysis}
-                  baseStyle={styles.analysisText}
-                />
-              </LinearGradient>
+              <View style={styles.analysisWrapper}>
+                {/* Main Analysis Card */}
+                <LinearGradient
+                  colors={['rgba(221, 133, 216, 0.12)', 'rgba(221, 133, 216, 0.04)']}
+                  style={styles.analysisContainer}
+                >
+                  {/* Cosmic Identity Section */}
+                  <CollapsibleSection
+                    title="Your Cosmic Reading"
+                    icon="sparkles"
+                    defaultOpen={true}
+                  >
+                    <FormattedText
+                      text={analysis}
+                      baseStyle={styles.analysisText}
+                    />
+                  </CollapsibleSection>
+
+                  {/* Key Insights Section */}
+                  <CollapsibleSection
+                    title="Key Cosmic Influences"
+                    icon="planet"
+                  >
+                    <View style={styles.insightRow}>
+                      <View style={styles.insightItem}>
+                        <Ionicons name="sunny" size={16} color={Colors.celestialGold} />
+                        <Text style={styles.insightLabel}>Sun in {astroSigns.sun}</Text>
+                      </View>
+                      <Text style={styles.insightText}>
+                        Your core identity and life force
+                      </Text>
+                    </View>
+                    <View style={styles.insightRow}>
+                      <View style={styles.insightItem}>
+                        <Ionicons name="moon" size={16} color={Colors.celestialGold} />
+                        <Text style={styles.insightLabel}>Moon in {astroSigns.moon}</Text>
+                      </View>
+                      <Text style={styles.insightText}>
+                        Your emotional nature and inner world
+                      </Text>
+                    </View>
+                    <View style={styles.insightRow}>
+                      <View style={styles.insightItem}>
+                        <Ionicons name="star" size={16} color={Colors.celestialGold} />
+                        <Text style={styles.insightLabel}>Life Path {numerology.lifePath}</Text>
+                      </View>
+                      <Text style={styles.insightText}>
+                        Your spiritual journey and purpose
+                      </Text>
+                    </View>
+                  </CollapsibleSection>
+                </LinearGradient>
+
+                {/* Action Buttons */}
+                <View style={styles.analysisActions}>
+                  {/* Discuss with Oracle Button */}
+                  <TouchableOpacity
+                    style={styles.oracleButton}
+                    onPress={() => router.push('/chat')}
+                    activeOpacity={0.7}
+                  >
+                    <LinearGradient
+                      colors={['rgba(221, 133, 216, 0.2)', 'rgba(221, 133, 216, 0.1)']}
+                      style={styles.oracleButtonGradient}
+                    >
+                      <Ionicons name="chatbubbles" size={18} color={Colors.celestialGold} />
+                      <Text style={styles.oracleButtonText}>Discuss with Oracle</Text>
+                      <Ionicons name="arrow-forward" size={16} color={Colors.moonlightGray} />
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  {/* Regenerate Button */}
+                  <TouchableOpacity
+                    style={styles.regenerateButton}
+                    onPress={handleAnalyze}
+                    disabled={isGenerating}
+                    activeOpacity={0.7}
+                  >
+                    {isGenerating ? (
+                      <ActivityIndicator size="small" color={Colors.moonlightGray} />
+                    ) : (
+                      <>
+                        <Ionicons name="refresh" size={16} color={Colors.moonlightGray} />
+                        <Text style={styles.regenerateButtonText}>Regenerate Analysis</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
             ) : (
               <View style={styles.generateContainer}>
                 <Text style={styles.generateText}>
@@ -474,15 +629,103 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
     fontStyle: 'italic',
   },
+  analysisWrapper: {
+    gap: Spacing.md,
+  },
   analysisContainer: {
-    padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(221, 133, 216, 0.3)',
+    borderColor: 'rgba(221, 133, 216, 0.2)',
+    overflow: 'hidden',
   },
   analysisText: {
     fontSize: 15,
     color: Colors.textPrimary,
     lineHeight: 24,
+  },
+  // Collapsible Section Styles
+  collapsibleSection: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(221, 133, 216, 0.1)',
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  collapsibleHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  collapsibleTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.celestialGold,
+    fontFamily: 'serif',
+  },
+  collapsibleContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  // Insight Styles
+  insightRow: {
+    marginBottom: Spacing.md,
+  },
+  insightItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: 4,
+  },
+  insightLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  insightText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginLeft: Spacing.lg + 4,
+    fontStyle: 'italic',
+  },
+  // Action Buttons Styles
+  analysisActions: {
+    gap: Spacing.sm,
+  },
+  oracleButton: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  oracleButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.3)',
+  },
+  oracleButtonText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.celestialGold,
+    fontFamily: 'serif',
+  },
+  regenerateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  regenerateButtonText: {
+    fontSize: 13,
+    color: Colors.moonlightGray,
   },
 });
