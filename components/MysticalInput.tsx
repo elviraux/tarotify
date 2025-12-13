@@ -36,7 +36,7 @@ export default function MysticalInput({ label, error, ...props }: Props) {
   };
 
   const animatedBorderStyle = useAnimatedStyle(() => ({
-    borderColor: `rgba(212, 175, 55, ${borderOpacity.value})`,
+    borderColor: `rgba(221, 133, 216, ${borderOpacity.value})`,
     shadowOpacity: borderOpacity.value * 0.3,
   }));
 

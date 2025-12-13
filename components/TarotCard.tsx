@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: BorderRadius.lg - 2,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
+    borderColor: 'rgba(221, 133, 216, 0.4)',
     padding: 4,
   },
   cardBackInner: {
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   },
   cardImagePlaceholder: {
     flex: 1,
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    backgroundColor: 'rgba(221, 133, 216, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },

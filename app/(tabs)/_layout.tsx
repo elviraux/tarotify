@@ -15,7 +15,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.moonlightGray,
         tabBarStyle: {
           backgroundColor: 'rgba(11, 15, 25, 0.98)',
-          borderTopColor: 'rgba(212, 175, 55, 0.2)',
+          borderTopColor: 'rgba(221, 133, 216, 0.2)',
           borderTopWidth: 1,
           paddingTop: Spacing.sm,
           paddingBottom: insets.bottom > 0 ? insets.bottom : Spacing.sm,

@@ -4,7 +4,7 @@ export const Colors = {
   // Primary Colors
   deepMidnightBlue: '#0B0F19',
   voidBlack: '#030508',
-  celestialGold: '#D4AF37',
+  celestialGold: '#DD85D8',
 
   // Secondary Colors
   mysticPurple: '#2D1B4E',
@@ -23,8 +23,8 @@ export const Colors = {
   // UI Colors
   cardBackground: 'rgba(30, 58, 95, 0.4)',
   inputBackground: 'rgba(255, 255, 255, 0.05)',
-  inputBorder: 'rgba(212, 175, 55, 0.5)',
-  inputBorderFocused: '#D4AF37',
+  inputBorder: 'rgba(221, 133, 216, 0.5)',
+  inputBorderFocused: '#DD85D8',
 
   // Gradient Colors
   gradientStart: '#0B0F19',
@@ -63,14 +63,14 @@ export const BorderRadius = {
 
 export const Shadows = {
   card: {
-    shadowColor: '#D4AF37',
+    shadowColor: '#DD85D8',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
   },
   glow: {
-    shadowColor: '#D4AF37',
+    shadowColor: '#DD85D8',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 20,

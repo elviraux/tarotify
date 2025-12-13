@@ -103,7 +103,7 @@ export default function ProfileScreen() {
           >
             <View style={styles.avatarContainer}>
               <LinearGradient
-                colors={[Colors.celestialGold, '#B8962E', Colors.celestialGold]}
+                colors={[Colors.celestialGold, '#C06DC0', Colors.celestialGold]}
                 style={styles.avatarGradient}
               >
                 <View style={styles.avatarInner}>
@@ -190,7 +190,7 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={['rgba(212, 175, 55, 0.15)', 'rgba(212, 175, 55, 0.05)']}
+                colors={['rgba(221, 133, 216, 0.15)', 'rgba(221, 133, 216, 0.05)']}
                 style={styles.deckGradient}
               >
                 <View style={styles.deckIconContainer}>
@@ -221,7 +221,7 @@ export default function ProfileScreen() {
             style={styles.quoteSection}
           >
             <LinearGradient
-              colors={['rgba(212, 175, 55, 0.1)', 'rgba(212, 175, 55, 0.05)']}
+              colors={['rgba(221, 133, 216, 0.1)', 'rgba(221, 133, 216, 0.05)']}
               style={styles.quoteContainer}
             >
               <Text style={styles.quoteText}>
@@ -312,13 +312,13 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.15)',
+    borderColor: 'rgba(221, 133, 216, 0.15)',
   },
   infoIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    backgroundColor: 'rgba(221, 133, 216, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -353,13 +353,13 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderColor: 'rgba(221, 133, 216, 0.3)',
   },
   deckIconContainer: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: 'rgba(221, 133, 216, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   },
   deckProgressBar: {
     height: 4,
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
     borderRadius: 2,
     overflow: 'hidden',
     marginTop: 4,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.2)',
+    borderColor: 'rgba(221, 133, 216, 0.2)',
   },
   quoteText: {
     fontSize: 16,

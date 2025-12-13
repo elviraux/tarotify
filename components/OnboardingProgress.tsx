@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   progressBackground: {
     height: 6,
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
     borderRadius: 3,
     overflow: 'hidden',
   },

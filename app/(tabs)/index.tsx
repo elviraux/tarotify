@@ -350,7 +350,7 @@ Provide a mystical interpretation in this exact JSON format (no other text):
                   style={styles.explanationContainer}
                 >
                   <LinearGradient
-                    colors={['rgba(212, 175, 55, 0.15)', 'rgba(212, 175, 55, 0.05)']}
+                    colors={['rgba(221, 133, 216, 0.15)', 'rgba(221, 133, 216, 0.05)']}
                     style={styles.explanationGradient}
                   >
                     <Text style={styles.explanationTitle}>
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     left: '20%',
     right: '20%',
     height: 1,
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
   },
   generateContainer: {
     paddingHorizontal: Spacing.xl,
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
   explanationGradient: {
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderColor: 'rgba(221, 133, 216, 0.3)',
     padding: Spacing.lg,
   },
   explanationTitle: {

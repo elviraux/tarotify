@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -413,10 +413,10 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.2)',
+    borderColor: 'rgba(221, 133, 216, 0.2)',
   },
   filterButtonActive: {
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
     borderColor: Colors.celestialGold,
   },
   filterText: {
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderColor: 'rgba(221, 133, 216, 0.3)',
   },
   cardImage: {
     flex: 1,
@@ -469,11 +469,11 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
+    borderColor: 'rgba(221, 133, 216, 0.4)',
   },
   cardNameOverlay: {
     position: 'absolute',
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
     aspectRatio: 2/3,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.05)',
+    backgroundColor: 'rgba(221, 133, 216, 0.05)',
   },
   modalPlaceholderSymbol: {
     fontSize: 60,

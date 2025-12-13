@@ -235,15 +235,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.celestialGold,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.05)',
+    backgroundColor: 'rgba(221, 133, 216, 0.05)',
   },
   clockInner: {
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    backgroundColor: 'rgba(221, 133, 216, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderColor: 'rgba(221, 133, 216, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
   },
   selectedItem: {
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    backgroundColor: 'rgba(221, 133, 216, 0.15)',
     borderRadius: BorderRadius.md,
   },
   pickerText: {

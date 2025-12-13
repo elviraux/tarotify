@@ -52,7 +52,7 @@ export default function GoldButton({
       style={[disabled && styles.disabled, style]}
     >
       <LinearGradient
-        colors={['#D4AF37', '#B8962E', '#D4AF37']}
+        colors={['#DD85D8', '#C06DC0', '#DD85D8']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.filledButton}
