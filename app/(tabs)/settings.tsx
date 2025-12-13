@@ -1,5 +1,5 @@
 // Settings Screen
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -16,6 +17,12 @@ import { Ionicons } from '@expo/vector-icons';
 import GradientBackground from '@/components/GradientBackground';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { clearAllData, setOnboardingComplete } from '@/utils/storage';
+import {
+  registerForNotifications,
+  scheduleDailyReminder,
+  cancelDailyReminder,
+  checkNotificationStatus,
+} from '@/utils/notifications';
 
 interface SettingItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -24,6 +31,7 @@ interface SettingItemProps {
   onPress?: () => void;
   showArrow?: boolean;
   rightElement?: React.ReactNode;
+  disabled?: boolean;
 }
 
 function SettingItem({
@@ -33,12 +41,13 @@ function SettingItem({
   onPress,
   showArrow = true,
   rightElement,
+  disabled = false,
 }: SettingItemProps) {
   return (
     <TouchableOpacity
-      style={styles.settingItem}
+      style={[styles.settingItem, disabled && styles.settingItemDisabled]}
       onPress={onPress}
-      disabled={!onPress}
+      disabled={!onPress || disabled}
       activeOpacity={onPress ? 0.7 : 1}
     >
       <View style={styles.settingIcon}>
@@ -49,7 +58,7 @@ function SettingItem({
         {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
       </View>
       {rightElement}
-      {showArrow && onPress && (
+      {showArrow && onPress && !disabled && (
         <Ionicons
           name="chevron-forward"
           size={20}
@@ -61,8 +70,82 @@ function SettingItem({
 }
 
 export default function SettingsScreen() {
-  const [notifications, setNotifications] = useState(true);
+  const [notifications, setNotifications] = useState(false);
   const [haptics, setHaptics] = useState(true);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
+  const [isTogglingNotifications, setIsTogglingNotifications] = useState(false);
+
+  // Check notification status on mount
+  useEffect(() => {
+    checkInitialNotificationStatus();
+  }, []);
+
+  const checkInitialNotificationStatus = async () => {
+    setIsLoadingNotifications(true);
+    try {
+      const isEnabled = await checkNotificationStatus();
+      setNotifications(isEnabled);
+    } catch (error) {
+      console.error('Error checking notification status:', error);
+      setNotifications(false);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  };
+
+  const handleNotificationToggle = useCallback(async (value: boolean) => {
+    setIsTogglingNotifications(true);
+
+    try {
+      if (value) {
+        // User is enabling notifications
+        const hasPermission = await registerForNotifications();
+
+        if (!hasPermission) {
+          Alert.alert(
+            'Notifications Disabled',
+            'To receive daily tarot reminders, please enable notifications for Tarotify in your device settings.',
+            [
+              { text: 'OK', style: 'default' },
+            ]
+          );
+          setNotifications(false);
+          return;
+        }
+
+        // Schedule the daily reminder
+        const scheduled = await scheduleDailyReminder();
+        if (scheduled) {
+          setNotifications(true);
+          Alert.alert(
+            'Daily Reminders Enabled ✨',
+            'You\'ll receive a mystical reminder every morning at 8:00 AM to draw your daily cards.',
+            [{ text: 'Wonderful', style: 'default' }]
+          );
+        } else {
+          setNotifications(false);
+          Alert.alert(
+            'Unable to Schedule',
+            'There was an issue scheduling your daily reminder. Please try again.',
+            [{ text: 'OK', style: 'default' }]
+          );
+        }
+      } else {
+        // User is disabling notifications
+        await cancelDailyReminder();
+        setNotifications(false);
+      }
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      Alert.alert(
+        'Error',
+        'There was a problem updating your notification settings.',
+        [{ text: 'OK', style: 'default' }]
+      );
+    } finally {
+      setIsTogglingNotifications(false);
+    }
+  }, []);
 
   const handleResetOnboarding = () => {
     Alert.alert(
@@ -92,6 +175,8 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Also cancel notifications when clearing data
+              await cancelDailyReminder();
               await clearAllData();
               router.replace('/onboarding');
             } catch {
@@ -134,18 +219,27 @@ export default function SettingsScreen() {
               <SettingItem
                 icon="notifications"
                 title="Daily Reminders"
-                subtitle="Get reminded for your daily reading"
+                subtitle="Get reminded at 8:00 AM daily"
                 showArrow={false}
+                disabled={isTogglingNotifications}
                 rightElement={
-                  <Switch
-                    value={notifications}
-                    onValueChange={setNotifications}
-                    trackColor={{
-                      false: Colors.moonlightGray,
-                      true: Colors.celestialGold,
-                    }}
-                    thumbColor={Colors.textPrimary}
-                  />
+                  isLoadingNotifications || isTogglingNotifications ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={Colors.celestialGold}
+                      style={styles.activityIndicator}
+                    />
+                  ) : (
+                    <Switch
+                      value={notifications}
+                      onValueChange={handleNotificationToggle}
+                      trackColor={{
+                        false: Colors.moonlightGray,
+                        true: Colors.celestialGold,
+                      }}
+                      thumbColor={Colors.textPrimary}
+                    />
+                  )
                 }
               />
               <SettingItem
@@ -281,6 +375,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(221, 133, 216, 0.1)',
   },
+  settingItemDisabled: {
+    opacity: 0.7,
+  },
   settingIcon: {
     width: 40,
     height: 40,
@@ -302,6 +399,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.moonlightGray,
     marginTop: 2,
+  },
+  activityIndicator: {
+    marginRight: Spacing.xs,
   },
   footer: {
     alignItems: 'center',

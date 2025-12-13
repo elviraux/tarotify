@@ -3,7 +3,19 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { configureNewell } from '@fastshot/ai';
+import * as Notifications from 'expo-notifications';
 import { Colors } from '@/constants/theme';
+
+// Configure notification handler (must be outside component)
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 // Configure Newell AI
 configureNewell({
