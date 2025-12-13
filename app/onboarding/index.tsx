@@ -22,6 +22,7 @@ import GradientBackground from '@/components/GradientBackground';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import MysticalInput from '@/components/MysticalInput';
 import DateWheelPicker from '@/components/DateWheelPicker';
+import TimeWheelPicker from '@/components/TimeWheelPicker';
 import GoldButton from '@/components/GoldButton';
 import { Colors, Spacing } from '@/constants/theme';
 import { saveUserProfile, setOnboardingComplete } from '@/utils/storage';
@@ -75,6 +76,10 @@ export default function OnboardingScreen() {
 
   const handleDateChange = useCallback((date: Date) => {
     setState(prev => ({ ...prev, dateOfBirth: date }));
+  }, []);
+
+  const handleTimeChange = useCallback((time: string) => {
+    setState(prev => ({ ...prev, timeOfBirth: time }));
   }, []);
 
   const isStepValid = () => {
@@ -150,18 +155,10 @@ export default function OnboardingScreen() {
               What time were you born?{'\n'}
               <Text style={styles.optional}>(Optional - enhances accuracy)</Text>
             </Text>
-            <View style={styles.inputContainer}>
-              <MysticalInput
-                value={state.timeOfBirth}
-                onChangeText={(text) =>
-                  setState(prev => ({ ...prev, timeOfBirth: text }))
-                }
-                placeholder="e.g., 3:45 PM"
-                autoCapitalize="none"
-                returnKeyType="done"
-                onSubmitEditing={Keyboard.dismiss}
-              />
-            </View>
+            <TimeWheelPicker
+              value={state.timeOfBirth}
+              onChange={handleTimeChange}
+            />
           </Animated.View>
         );
 
