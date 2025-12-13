@@ -197,7 +197,7 @@ export default function ProfileScreen() {
 
                 <Text style={styles.title}>Your Profile</Text>
 
-                {/* Edit/Save/Cancel Buttons */}
+                {/* Edit/Save/Cancel/Settings Buttons */}
                 <View style={styles.headerActions}>
                   {isEditing ? (
                     <>
@@ -221,12 +221,20 @@ export default function ProfileScreen() {
                       </TouchableOpacity>
                     </>
                   ) : (
-                    <TouchableOpacity
-                      style={styles.headerButton}
-                      onPress={handleStartEdit}
-                    >
-                      <Ionicons name="pencil" size={20} color={Colors.celestialGold} />
-                    </TouchableOpacity>
+                    <>
+                      <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={handleStartEdit}
+                      >
+                        <Ionicons name="pencil" size={20} color={Colors.celestialGold} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => router.push('/settings')}
+                      >
+                        <Ionicons name="settings-outline" size={22} color={Colors.celestialGold} />
+                      </TouchableOpacity>
+                    </>
                   )}
                 </View>
               </Animated.View>
