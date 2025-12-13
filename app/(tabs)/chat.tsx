@@ -21,6 +21,7 @@ import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { getUserProfile, getDailyReading, getTodayDateString } from '@/utils/storage';
 import { UserProfile, DailyReading } from '@/types';
 import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
+import { hapticLight } from '@/utils/haptics';
 
 interface Message {
   id: string;
@@ -165,6 +166,9 @@ Respond as The Oracle:`;
 
   const handleSend = useCallback(() => {
     if (!inputText.trim() || isLoading) return;
+
+    // Trigger light haptic when sending a message
+    hapticLight();
 
     const userMessage: Message = {
       id: Date.now().toString(),

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { hapticMedium } from '@/utils/haptics';
 
 interface Props {
   title: string;
@@ -27,11 +28,16 @@ export default function GoldButton({
   variant = 'filled',
   style,
 }: Props) {
+  const handlePress = () => {
+    hapticMedium();
+    onPress();
+  };
+
   if (variant === 'outline') {
     return (
       <TouchableOpacity
         style={[styles.outlineButton, disabled && styles.disabled, style]}
-        onPress={onPress}
+        onPress={handlePress}
         disabled={disabled || loading}
         activeOpacity={0.8}
       >
@@ -46,7 +52,7 @@ export default function GoldButton({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       activeOpacity={0.8}
       style={[disabled && styles.disabled, style]}

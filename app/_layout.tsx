@@ -1,10 +1,12 @@
 // Root Layout - Handles navigation and initial routing
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { configureNewell } from '@fastshot/ai';
 import * as Notifications from 'expo-notifications';
 import { Colors } from '@/constants/theme';
+import { initHaptics } from '@/utils/haptics';
 
 // Configure notification handler (must be outside component)
 Notifications.setNotificationHandler({
@@ -23,6 +25,11 @@ configureNewell({
 });
 
 export default function RootLayout() {
+  // Initialize haptics preference cache on app start
+  useEffect(() => {
+    initHaptics();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />

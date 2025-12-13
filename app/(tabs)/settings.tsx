@@ -23,6 +23,11 @@ import {
   cancelDailyReminder,
   checkNotificationStatus,
 } from '@/utils/notifications';
+import {
+  getHapticPreference,
+  saveHapticPreference,
+  triggerHaptic,
+} from '@/utils/haptics';
 
 interface SettingItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -74,10 +79,34 @@ export default function SettingsScreen() {
   const [haptics, setHaptics] = useState(true);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
   const [isTogglingNotifications, setIsTogglingNotifications] = useState(false);
+  const [isLoadingHaptics, setIsLoadingHaptics] = useState(true);
 
-  // Check notification status on mount
+  // Check notification and haptic status on mount
   useEffect(() => {
     checkInitialNotificationStatus();
+    checkInitialHapticStatus();
+  }, []);
+
+  const checkInitialHapticStatus = async () => {
+    setIsLoadingHaptics(true);
+    try {
+      const isEnabled = await getHapticPreference();
+      setHaptics(isEnabled);
+    } catch (error) {
+      console.error('Error checking haptic status:', error);
+      setHaptics(true);
+    } finally {
+      setIsLoadingHaptics(false);
+    }
+  };
+
+  const handleHapticToggle = useCallback(async (value: boolean) => {
+    await saveHapticPreference(value);
+    setHaptics(value);
+    // Trigger a haptic to confirm the toggle (if enabling)
+    if (value) {
+      triggerHaptic('light');
+    }
   }, []);
 
   const checkInitialNotificationStatus = async () => {
@@ -248,15 +277,23 @@ export default function SettingsScreen() {
                 subtitle="Vibrate on card interactions"
                 showArrow={false}
                 rightElement={
-                  <Switch
-                    value={haptics}
-                    onValueChange={setHaptics}
-                    trackColor={{
-                      false: Colors.moonlightGray,
-                      true: Colors.celestialGold,
-                    }}
-                    thumbColor={Colors.textPrimary}
-                  />
+                  isLoadingHaptics ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={Colors.celestialGold}
+                      style={styles.activityIndicator}
+                    />
+                  ) : (
+                    <Switch
+                      value={haptics}
+                      onValueChange={handleHapticToggle}
+                      trackColor={{
+                        false: Colors.moonlightGray,
+                        true: Colors.celestialGold,
+                      }}
+                      thumbColor={Colors.textPrimary}
+                    />
+                  )
                 }
               />
             </View>

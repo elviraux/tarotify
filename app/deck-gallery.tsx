@@ -25,6 +25,7 @@ import { tarotDeck, getMajorArcana, getMinorArcana } from '@/data/tarotDeck';
 import { TarotCard } from '@/types';
 import { getCardImageUri, getGeneratedCardIds, resolveCardImageSource } from '@/utils/imageStorage';
 import { generateCardImage, manifestFullDeck, getMissingCardsCount } from '@/services/cardImageService';
+import { hapticSuccess, hapticLight } from '@/utils/haptics';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 8;
@@ -193,6 +194,8 @@ export default function DeckGalleryScreen() {
       if (uri) {
         setCardImages(prev => ({ ...prev, [card.id]: uri }));
         setStats(prev => ({ ...prev, generated: prev.generated + 1 }));
+        // Trigger success haptic when card is revealed
+        hapticSuccess();
       }
     } catch (error) {
       console.error(`Error generating image for ${card.name}:`, error);
@@ -269,6 +272,8 @@ export default function DeckGalleryScreen() {
               ...prev,
               successCount: prev.successCount + 1,
             }));
+            // Light haptic for each card revealed during manifestation
+            hapticLight();
           } else {
             setManifestation(prev => ({
               ...prev,
@@ -282,6 +287,9 @@ export default function DeckGalleryScreen() {
             isActive: false,
             currentCardName: 'Complete',
           }));
+
+          // Trigger success haptic when manifestation completes
+          hapticSuccess();
 
           const message = failedCount > 0
             ? `Successfully revealed ${successCount} cards. ${failedCount} cards could not be generated and can be tried again later.`

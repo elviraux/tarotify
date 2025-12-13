@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { formatDateLong } from '@/utils/formatDate';
+import { hapticSelection } from '@/utils/haptics';
 
 interface Props {
   value: Date;
@@ -104,7 +105,8 @@ export default function DateWheelPicker({ value, onChange }: Props) {
             contentContainerStyle={styles.pickerContent}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-              if (index >= 0 && index < months.length) {
+              if (index >= 0 && index < months.length && index !== selectedMonth) {
+                hapticSelection();
                 setSelectedMonth(index);
               }
             }}
@@ -117,7 +119,12 @@ export default function DateWheelPicker({ value, onChange }: Props) {
                   styles.pickerItem,
                   selectedMonth === index && styles.selectedItem,
                 ]}
-                onPress={() => setSelectedMonth(index)}
+                onPress={() => {
+                  if (selectedMonth !== index) {
+                    hapticSelection();
+                    setSelectedMonth(index);
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -142,7 +149,8 @@ export default function DateWheelPicker({ value, onChange }: Props) {
             contentContainerStyle={styles.pickerContent}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-              if (index >= 0 && index < days.length) {
+              if (index >= 0 && index < days.length && days[index] !== selectedDay) {
+                hapticSelection();
                 setSelectedDay(days[index]);
               }
             }}
@@ -155,7 +163,12 @@ export default function DateWheelPicker({ value, onChange }: Props) {
                   styles.pickerItem,
                   selectedDay === day && styles.selectedItem,
                 ]}
-                onPress={() => setSelectedDay(day)}
+                onPress={() => {
+                  if (selectedDay !== day) {
+                    hapticSelection();
+                    setSelectedDay(day);
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -180,7 +193,8 @@ export default function DateWheelPicker({ value, onChange }: Props) {
             contentContainerStyle={styles.pickerContent}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-              if (index >= 0 && index < years.length) {
+              if (index >= 0 && index < years.length && years[index] !== selectedYear) {
+                hapticSelection();
                 setSelectedYear(years[index]);
               }
             }}
@@ -196,7 +210,12 @@ export default function DateWheelPicker({ value, onChange }: Props) {
                   styles.pickerItem,
                   selectedYear === year && styles.selectedItem,
                 ]}
-                onPress={() => setSelectedYear(year)}
+                onPress={() => {
+                  if (selectedYear !== year) {
+                    hapticSelection();
+                    setSelectedYear(year);
+                  }
+                }}
               >
                 <Text
                   style={[

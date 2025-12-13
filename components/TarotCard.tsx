@@ -19,6 +19,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { TarotCard as TarotCardType } from '@/types';
+import { hapticLight } from '@/utils/haptics';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 80) / 3;
@@ -175,11 +176,16 @@ export default function TarotCard({
     );
   };
 
+  const handlePress = () => {
+    hapticLight();
+    onPress();
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={onPress}
+        onPress={handlePress}
         disabled={isRevealed}
         style={styles.cardContainer}
       >

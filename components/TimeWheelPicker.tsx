@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { hapticSelection } from '@/utils/haptics';
 
 interface Props {
   value: string; // "h:mm A" format, e.g., "3:45 PM"
@@ -118,7 +119,8 @@ export default function TimeWheelPicker({ value, onChange }: Props) {
             contentContainerStyle={styles.pickerContent}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-              if (index >= 0 && index < hours.length) {
+              if (index >= 0 && index < hours.length && hours[index] !== selectedHour) {
+                hapticSelection();
                 setSelectedHour(hours[index]);
               }
             }}
@@ -131,7 +133,12 @@ export default function TimeWheelPicker({ value, onChange }: Props) {
                   styles.pickerItem,
                   selectedHour === hour && styles.selectedItem,
                 ]}
-                onPress={() => setSelectedHour(hour)}
+                onPress={() => {
+                  if (selectedHour !== hour) {
+                    hapticSelection();
+                    setSelectedHour(hour);
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -161,7 +168,8 @@ export default function TimeWheelPicker({ value, onChange }: Props) {
             contentContainerStyle={styles.pickerContent}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-              if (index >= 0 && index < minutes.length) {
+              if (index >= 0 && index < minutes.length && minutes[index] !== selectedMinute) {
+                hapticSelection();
                 setSelectedMinute(minutes[index]);
               }
             }}
@@ -174,7 +182,12 @@ export default function TimeWheelPicker({ value, onChange }: Props) {
                   styles.pickerItem,
                   selectedMinute === minute && styles.selectedItem,
                 ]}
-                onPress={() => setSelectedMinute(minute)}
+                onPress={() => {
+                  if (selectedMinute !== minute) {
+                    hapticSelection();
+                    setSelectedMinute(minute);
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -199,7 +212,8 @@ export default function TimeWheelPicker({ value, onChange }: Props) {
             contentContainerStyle={styles.pickerContent}
             onMomentumScrollEnd={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-              if (index >= 0 && index < periods.length) {
+              if (index >= 0 && index < periods.length && periods[index] !== selectedPeriod) {
+                hapticSelection();
                 setSelectedPeriod(periods[index]);
               }
             }}
@@ -212,7 +226,12 @@ export default function TimeWheelPicker({ value, onChange }: Props) {
                   styles.pickerItem,
                   selectedPeriod === period && styles.selectedItem,
                 ]}
-                onPress={() => setSelectedPeriod(period)}
+                onPress={() => {
+                  if (selectedPeriod !== period) {
+                    hapticSelection();
+                    setSelectedPeriod(period);
+                  }
+                }}
               >
                 <Text
                   style={[
