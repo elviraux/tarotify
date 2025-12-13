@@ -151,10 +151,7 @@ export default function OnboardingScreen() {
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Hour of{'\n'}Arrival</Text>
-            <Text style={styles.subheading}>
-              What time were you born?{'\n'}
-              <Text style={styles.optional}>(Optional - enhances accuracy)</Text>
-            </Text>
+            <Text style={styles.subheading}>What time were you born?</Text>
             <TimeWheelPicker
               value={state.timeOfBirth}
               onChange={handleTimeChange}
@@ -171,10 +168,7 @@ export default function OnboardingScreen() {
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Place of{'\n'}Origin</Text>
-            <Text style={styles.subheading}>
-              Where were you born?{'\n'}
-              <Text style={styles.optional}>(Optional - enhances accuracy)</Text>
-            </Text>
+            <Text style={styles.subheading}>Where were you born?</Text>
             <View style={styles.inputContainer}>
               <MysticalInput
                 value={state.placeOfBirth}
@@ -270,11 +264,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
     fontFamily: 'System',
     lineHeight: 24,
-  },
-  optional: {
-    fontSize: 14,
-    color: Colors.moonlightGray,
-    fontStyle: 'italic',
   },
   inputContainer: {
     width: '100%',
