@@ -5,20 +5,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEY = '@tarotify_haptics_enabled';
 
 // Cache the preference for performance (avoid async lookup on every haptic)
-let cachedHapticsEnabled: boolean | null = null;
+// Default to true so haptics work from the very first millisecond
+let cachedHapticsEnabled: boolean = true;
 
 export type HapticType = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | 'selection';
 
 /**
  * Initialize the haptics system by loading the cached preference
+ * Only disables haptics if user explicitly turned them off
  */
 export const initHaptics = async (): Promise<void> => {
   try {
     const stored = await AsyncStorage.getItem(STORAGE_KEY);
-    cachedHapticsEnabled = stored === null ? true : stored === 'true';
+    // Only override if explicitly set to 'false', otherwise keep enabled
+    if (stored === 'false') {
+      cachedHapticsEnabled = false;
+    }
+    // If stored is null (not set) or 'true', keep cachedHapticsEnabled as true
   } catch (error) {
     console.error('Error loading haptic preference:', error);
-    cachedHapticsEnabled = true;
+    // Keep default true on error
   }
 };
 
@@ -54,12 +60,19 @@ export const saveHapticPreference = async (enabled: boolean): Promise<void> => {
  * @param type - The type of haptic feedback to trigger
  */
 export const triggerHaptic = async (type: HapticType = 'light'): Promise<void> => {
-  // Use cached value if available, otherwise default to true
-  const isEnabled = cachedHapticsEnabled ?? true;
-
-  if (!isEnabled) return;
+  // Use cached value directly (defaults to true)
+  if (!cachedHapticsEnabled) {
+    if (__DEV__) {
+      console.log('[Haptics] Skipped - haptics disabled by user');
+    }
+    return;
+  }
 
   try {
+    if (__DEV__) {
+      console.log(`[Haptics] Triggering: ${type}`);
+    }
+
     switch (type) {
       case 'light':
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -87,7 +100,9 @@ export const triggerHaptic = async (type: HapticType = 'light'): Promise<void> =
     }
   } catch (error) {
     // Silently fail - haptics may not be available on all devices
-    console.warn('Haptic feedback unavailable:', error);
+    if (__DEV__) {
+      console.warn('[Haptics] Feedback unavailable:', error);
+    }
   }
 };
 
