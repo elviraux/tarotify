@@ -22,6 +22,7 @@ import {
   scheduleDailyReminder,
   cancelDailyReminder,
   checkNotificationStatus,
+  sendTestNotification,
 } from '@/utils/notifications';
 import {
   getHapticPreference,
@@ -80,6 +81,7 @@ export default function SettingsScreen() {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
   const [isTogglingNotifications, setIsTogglingNotifications] = useState(false);
   const [isLoadingHaptics, setIsLoadingHaptics] = useState(true);
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   // Check notification and haptic status on mount
   useEffect(() => {
@@ -173,6 +175,35 @@ export default function SettingsScreen() {
       );
     } finally {
       setIsTogglingNotifications(false);
+    }
+  }, []);
+
+  const handleTestNotification = useCallback(async () => {
+    setIsSendingTest(true);
+    try {
+      const success = await sendTestNotification();
+      if (success) {
+        Alert.alert(
+          'Test Sent! 🔮',
+          'A notification will appear in a moment. Check your notification center.',
+          [{ text: 'OK', style: 'default' }]
+        );
+      } else {
+        Alert.alert(
+          'Unable to Send',
+          'There was an issue sending the test notification. Please check your notification permissions.',
+          [{ text: 'OK', style: 'default' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      Alert.alert(
+        'Error',
+        'Failed to send test notification.',
+        [{ text: 'OK', style: 'default' }]
+      );
+    } finally {
+      setIsSendingTest(false);
     }
   }, []);
 
@@ -271,6 +302,24 @@ export default function SettingsScreen() {
                   )
                 }
               />
+              {/* Test Notification Button - only visible when notifications enabled */}
+              {notifications && !isLoadingNotifications && (
+                <TouchableOpacity
+                  style={styles.testNotificationButton}
+                  onPress={handleTestNotification}
+                  disabled={isSendingTest}
+                  activeOpacity={0.7}
+                >
+                  {isSendingTest ? (
+                    <ActivityIndicator size="small" color={Colors.mysticPurple} />
+                  ) : (
+                    <>
+                      <Ionicons name="send" size={16} color={Colors.mysticPurple} />
+                      <Text style={styles.testNotificationText}>Send Test Notification</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
               <SettingItem
                 icon="phone-portrait"
                 title="Haptic Feedback"
@@ -439,6 +488,26 @@ const styles = StyleSheet.create({
   },
   activityIndicator: {
     marginRight: Spacing.xs,
+  },
+  testNotificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(221, 133, 216, 0.1)',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.3)',
+    borderStyle: 'dashed',
+  },
+  testNotificationText: {
+    fontSize: 13,
+    color: Colors.mysticPurple,
+    fontWeight: '500',
+    marginLeft: Spacing.xs,
   },
   footer: {
     alignItems: 'center',

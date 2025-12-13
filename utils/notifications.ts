@@ -129,3 +129,39 @@ export const checkNotificationStatus = async (): Promise<boolean> => {
 export const getScheduledNotifications = async () => {
   return await Notifications.getAllScheduledNotificationsAsync();
 };
+
+/**
+ * Send a test notification immediately
+ * This allows users to verify notifications are working
+ */
+export const sendTestNotification = async (): Promise<boolean> => {
+  try {
+    // Check permissions first
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== 'granted') {
+      console.log('Cannot send test notification: permissions not granted');
+      return false;
+    }
+
+    // Schedule notification to trigger in 1 second
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Test Notification 🔮',
+        body: 'Your daily tarot reminders are working perfectly! The stars are aligned.',
+        sound: 'default',
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: { type: 'test' },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 1,
+      },
+    });
+
+    console.log('Test notification scheduled');
+    return true;
+  } catch (error) {
+    console.error('Error sending test notification:', error);
+    return false;
+  }
+};
