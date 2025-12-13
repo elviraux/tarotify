@@ -39,6 +39,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="tarot"
+        options={{
+          title: 'Tarot',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="layers-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="chat"
         options={{
           title: 'Oracle',
@@ -62,15 +71,6 @@ export default function TabLayout() {
           title: 'Journal',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="book-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="rituals"
-        options={{
-          title: 'Rituals',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flame-outline" size={size} color={color} />
           ),
         }}
       />
