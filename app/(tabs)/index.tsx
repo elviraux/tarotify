@@ -14,6 +14,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import GradientBackground from '@/components/GradientBackground';
 import TarotCard from '@/components/TarotCard';
 import GoldButton from '@/components/GoldButton';
+import FormattedText from '@/components/FormattedText';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { getRandomCards } from '@/data/tarotDeck';
 import {
@@ -405,15 +406,16 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
                   style={styles.explanationContainer}
                 >
                   <LinearGradient
-                    colors={['rgba(221, 133, 216, 0.15)', 'rgba(221, 133, 216, 0.05)']}
+                    colors={['rgba(221, 133, 216, 0.12)', 'rgba(221, 133, 216, 0.04)']}
                     style={styles.explanationGradient}
                   >
                     <Text style={styles.explanationTitle}>
-                      Explanation for the Day
+                      ✨ Explanation for the Day ✨
                     </Text>
-                    <Text style={styles.explanationText}>
-                      {dailyReading.mainExplanation}
-                    </Text>
+                    <FormattedText
+                      text={dailyReading.mainExplanation}
+                      baseStyle={styles.explanationText}
+                    />
                   </LinearGradient>
                 </Animated.View>
               )}
@@ -519,27 +521,31 @@ const styles = StyleSheet.create({
   },
   explanationContainer: {
     marginTop: Spacing.xl,
-    marginHorizontal: Spacing.lg,
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   explanationGradient: {
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.lg + 4,
     borderWidth: 1,
-    borderColor: 'rgba(221, 133, 216, 0.3)',
-    padding: Spacing.lg,
+    borderColor: 'rgba(221, 133, 216, 0.25)',
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg + 4,
   },
   explanationTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     fontFamily: 'serif',
     color: Colors.celestialGold,
     textAlign: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
+    letterSpacing: 0.5,
   },
   explanationText: {
     fontSize: 15,
     color: Colors.textSecondary,
     fontFamily: 'System',
-    lineHeight: 24,
-    textAlign: 'justify',
+    lineHeight: 26,
+    textAlign: 'left',
+    letterSpacing: 0.2,
   },
 });
