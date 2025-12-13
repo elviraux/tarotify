@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTextGeneration } from '@fastshot/ai';
 import GradientBackground from '@/components/GradientBackground';
+import FormattedText from '@/components/FormattedText';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { getUserProfile, getDailyReading, getTodayDateString } from '@/utils/storage';
 import { UserProfile, DailyReading } from '@/types';
@@ -202,9 +203,16 @@ Respond as The Oracle:`;
           <Ionicons name="sparkles" size={14} color={Colors.celestialGold} />
         </View>
       )}
-      <Text style={[styles.messageText, item.isUser ? styles.userText : styles.aiText]}>
-        {item.text}
-      </Text>
+      {item.isUser ? (
+        <Text style={[styles.messageText, styles.userText]}>
+          {item.text}
+        </Text>
+      ) : (
+        <FormattedText
+          text={item.text}
+          baseStyle={styles.aiText}
+        />
+      )}
     </View>
   );
 

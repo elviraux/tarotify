@@ -17,6 +17,7 @@ import { useTextGeneration } from '@fastshot/ai';
 
 import GradientBackground from '@/components/GradientBackground';
 import GoldButton from '@/components/GoldButton';
+import FormattedText from '@/components/FormattedText';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { getUserProfile, getChartAnalysis, saveChartAnalysis } from '@/utils/storage';
 import { UserProfile } from '@/types';
@@ -26,8 +27,18 @@ import {
   calculateDestinyNumber,
   calculateSoulUrgeNumber,
 } from '@/utils/numerology';
+import {
+  calculateMoonSign,
+  calculateRisingSign,
+} from '@/utils/astrology';
 
 const { width } = Dimensions.get('window');
+
+interface ChartData {
+  moonSign: string;
+  risingSign: string | null;
+  analysis: string;
+}
 
 export default function ChartsScreen() {
   const insets = useSafeAreaInsets();
@@ -35,6 +46,12 @@ export default function ChartsScreen() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const [astroSigns, setAstroSigns] = useState({
+    sun: '',
+    moon: '',
+    rising: null as string | null,
+  });
 
   const [numerology, setNumerology] = useState({
     lifePath: 0,
@@ -44,8 +61,34 @@ export default function ChartsScreen() {
 
   const { generateText } = useTextGeneration({
     onSuccess: async (text) => {
-      setAnalysis(text);
-      await saveChartAnalysis(text);
+      // Try to parse as JSON first
+      try {
+        // Extract JSON from response if wrapped in markdown code blocks
+        let jsonText = text;
+        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[1].trim();
+        }
+
+        const parsed: ChartData = JSON.parse(jsonText);
+
+        // Update signs if AI refined them
+        if (parsed.moonSign) {
+          setAstroSigns(prev => ({ ...prev, moon: parsed.moonSign }));
+        }
+        if (parsed.risingSign) {
+          setAstroSigns(prev => ({ ...prev, rising: parsed.risingSign }));
+        }
+
+        // Save and display the analysis
+        const analysisText = parsed.analysis || text;
+        setAnalysis(analysisText);
+        await saveChartAnalysis(analysisText);
+      } catch {
+        // If not valid JSON, use as plain text
+        setAnalysis(text);
+        await saveChartAnalysis(text);
+      }
       setIsGenerating(false);
     },
     onError: (error) => {
@@ -65,6 +108,20 @@ export default function ChartsScreen() {
       setProfile(userProfile);
 
       if (userProfile) {
+        // Calculate all signs immediately
+        const sunSign = getZodiacSign(userProfile.dateOfBirth);
+        const moonSign = calculateMoonSign(userProfile.dateOfBirth);
+        const risingSign = calculateRisingSign(
+          userProfile.dateOfBirth,
+          userProfile.timeOfBirth
+        );
+
+        setAstroSigns({
+          sun: sunSign,
+          moon: moonSign,
+          rising: risingSign,
+        });
+
         setNumerology({
           lifePath: calculateLifePathNumber(userProfile.dateOfBirth),
           destiny: calculateDestinyNumber(userProfile.fullName),
@@ -87,18 +144,30 @@ export default function ChartsScreen() {
     if (!profile) return;
     setIsGenerating(true);
 
-    const sunSign = getZodiacSign(profile.dateOfBirth);
-    const lifePath = numerology.lifePath;
+    const prompt = `You are a mystical astrologer analyzing a birth chart. Provide a detailed, insightful reading.
 
-    const prompt = `Analyze the astrological and numerological profile for ${profile.fullName}, born ${formatDateLong(profile.dateOfBirth)} at ${profile.timeOfBirth || 'unknown time'} in ${profile.placeOfBirth || 'unknown place'}.
+Birth Information:
+- Name: ${profile.fullName}
+- Date: ${formatDateLong(profile.dateOfBirth)}
+- Time: ${profile.timeOfBirth || 'Unknown'}
+- Place: ${profile.placeOfBirth || 'Unknown'}
 
-Key Details:
-- Sun Sign: ${sunSign}
-- Life Path Number: ${lifePath}
+Current Calculations:
+- Sun Sign: ${astroSigns.sun}
+- Estimated Moon Sign: ${astroSigns.moon}
+- Estimated Rising Sign: ${astroSigns.rising || 'Unknown (no birth time)'}
+- Life Path Number: ${numerology.lifePath}
 - Destiny Number: ${numerology.destiny}
 - Soul Urge Number: ${numerology.soulUrge}
 
-Please provide a mystical and insightful reading of their character, strengths, and spiritual path. Include estimated Moon and Rising signs if possible based on the provided time and place (approximate if precise calculation isn't possible). Format the response clearly.`;
+Please respond with a JSON object in this exact format:
+{
+  "moonSign": "refined moon sign if you can estimate better, or use the provided one",
+  "risingSign": "refined rising sign if birth time was provided, or null",
+  "analysis": "Your full mystical analysis text here. Include sections on personality, strengths, life purpose, and spiritual guidance. Write naturally with line breaks between paragraphs."
+}
+
+Important: The analysis should be warm, mystical, and insightful. Reference specific astrological and numerological meanings. Keep it personal and meaningful.`;
 
     generateText(prompt);
   };
@@ -112,8 +181,6 @@ Please provide a mystical and insightful reading of their character, strengths, 
       </GradientBackground>
     );
   }
-
-  const sunSign = profile ? getZodiacSign(profile.dateOfBirth) : '';
 
   return (
     <GradientBackground>
@@ -151,33 +218,45 @@ Please provide a mystical and insightful reading of their character, strengths, 
               >
                 <Text style={styles.astroLabel}>Sun</Text>
                 <Ionicons name="sunny" size={24} color={Colors.celestialGold} />
-                <Text style={styles.astroValue}>{sunSign}</Text>
+                <Text style={styles.astroValue}>{astroSigns.sun}</Text>
               </LinearGradient>
 
               {/* Moon Sign */}
               <LinearGradient
-                colors={['rgba(30, 58, 95, 0.3)', 'rgba(30, 58, 95, 0.1)']}
+                colors={['rgba(221, 133, 216, 0.2)', 'rgba(221, 133, 216, 0.05)']}
                 style={styles.astroCard}
               >
                 <Text style={styles.astroLabel}>Moon</Text>
-                <Ionicons name="moon" size={24} color={Colors.moonlightGray} />
-                <Text style={styles.astroValue}>
-                  {analysis ? 'Revealed' : '?'}
-                </Text>
+                <Ionicons name="moon" size={24} color={Colors.celestialGold} />
+                <Text style={styles.astroValue}>{astroSigns.moon}</Text>
               </LinearGradient>
 
               {/* Rising Sign */}
               <LinearGradient
-                colors={['rgba(30, 58, 95, 0.3)', 'rgba(30, 58, 95, 0.1)']}
+                colors={astroSigns.rising
+                  ? ['rgba(221, 133, 216, 0.2)', 'rgba(221, 133, 216, 0.05)']
+                  : ['rgba(30, 58, 95, 0.3)', 'rgba(30, 58, 95, 0.1)']}
                 style={styles.astroCard}
               >
                 <Text style={styles.astroLabel}>Rising</Text>
-                <Ionicons name="arrow-up-circle" size={24} color={Colors.moonlightGray} />
-                <Text style={styles.astroValue}>
-                  {analysis ? 'Revealed' : '?'}
+                <Ionicons
+                  name="arrow-up-circle"
+                  size={24}
+                  color={astroSigns.rising ? Colors.celestialGold : Colors.moonlightGray}
+                />
+                <Text style={[
+                  styles.astroValue,
+                  !astroSigns.rising && styles.astroValueUnknown
+                ]}>
+                  {astroSigns.rising || 'Unknown'}
                 </Text>
               </LinearGradient>
             </View>
+            {!astroSigns.rising && (
+              <Text style={styles.astroHint}>
+                Add your birth time in Profile for Rising sign
+              </Text>
+            )}
           </Animated.View>
 
           {/* Numerology Section */}
@@ -213,7 +292,10 @@ Please provide a mystical and insightful reading of their character, strengths, 
                 colors={['rgba(221, 133, 216, 0.15)', 'rgba(221, 133, 216, 0.05)']}
                 style={styles.analysisContainer}
               >
-                <Text style={styles.analysisText}>{analysis}</Text>
+                <FormattedText
+                  text={analysis}
+                  baseStyle={styles.analysisText}
+                />
               </LinearGradient>
             ) : (
               <View style={styles.generateContainer}>
@@ -311,6 +393,17 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     textAlign: 'center',
   },
+  astroValueUnknown: {
+    color: Colors.moonlightGray,
+    fontSize: 12,
+  },
+  astroHint: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
+    fontStyle: 'italic',
+  },
   numerologyRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -372,6 +465,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.textPrimary,
     lineHeight: 24,
-    fontFamily: 'System',
   },
 });
