@@ -23,6 +23,7 @@ import {
   getDailyReading,
   saveDailyReading,
   getTodayDateString,
+  saveToHistory,
 } from '@/utils/storage';
 import { formatDateLong } from '@/utils/formatDate';
 import { UserProfile, DailyReading, CardReading, TarotCard as TarotCardData } from '@/types';
@@ -126,6 +127,7 @@ export default function HomeScreen() {
     };
 
     await saveDailyReading(reading);
+    await saveToHistory(reading);
     setDailyReading(reading);
 
     // Load any existing images for the new cards

@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   STORED_IMAGES: '@tarotify_stored_images',
   CARD_BACK_IMAGE: '@tarotify_card_back_image',
   CHART_ANALYSIS: '@tarotify_chart_analysis',
+  READING_HISTORY: '@tarotify_reading_history',
 };
 
 // User Profile Storage
@@ -193,6 +194,79 @@ export const getChartAnalysis = async (): Promise<string | null> => {
   } catch (error) {
     console.error('Error getting chart analysis:', error);
     return null;
+  }
+};
+
+// Reading History Storage
+export const getReadingHistory = async (): Promise<DailyReading[]> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.READING_HISTORY);
+    let history: DailyReading[] = [];
+
+    if (jsonValue != null) {
+      history = JSON.parse(jsonValue).map((reading: DailyReading) => ({
+        ...reading,
+        createdAt: new Date(reading.createdAt),
+        userProfile: {
+          ...reading.userProfile,
+          dateOfBirth: new Date(reading.userProfile.dateOfBirth),
+          createdAt: new Date(reading.userProfile.createdAt),
+        },
+      }));
+    }
+
+    // Migration: If history is empty, check for existing daily reading
+    if (history.length === 0) {
+      const currentReading = await getDailyReading();
+      if (currentReading) {
+        history = [currentReading];
+        // Save the migrated history
+        await AsyncStorage.setItem(
+          STORAGE_KEYS.READING_HISTORY,
+          JSON.stringify(history)
+        );
+      }
+    }
+
+    return history;
+  } catch (error) {
+    console.error('Error getting reading history:', error);
+    return [];
+  }
+};
+
+export const saveToHistory = async (reading: DailyReading): Promise<void> => {
+  try {
+    const history = await getReadingHistory();
+
+    // Check if a reading for this date already exists
+    const existingIndex = history.findIndex(r => r.date === reading.date);
+
+    if (existingIndex >= 0) {
+      // Update existing reading for this date
+      history[existingIndex] = reading;
+    } else {
+      // Prepend new reading (newest first)
+      history.unshift(reading);
+    }
+
+    // Save updated history
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.READING_HISTORY,
+      JSON.stringify(history)
+    );
+  } catch (error) {
+    console.error('Error saving to history:', error);
+    throw error;
+  }
+};
+
+export const clearReadingHistory = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEYS.READING_HISTORY);
+  } catch (error) {
+    console.error('Error clearing reading history:', error);
+    throw error;
   }
 };
 
