@@ -61,13 +61,22 @@ export default function ChartsScreen() {
 
   const { generateText } = useTextGeneration({
     onSuccess: async (text) => {
-      // Try to parse as JSON first
+      // Robust JSON extraction and parsing
       try {
-        // Extract JSON from response if wrapped in markdown code blocks
         let jsonText = text;
-        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[1].trim();
+
+        // First, try to extract from markdown code blocks
+        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          jsonText = codeBlockMatch[1].trim();
+        } else {
+          // Find the first '{' and last '}' to extract JSON object
+          const firstBrace = text.indexOf('{');
+          const lastBrace = text.lastIndexOf('}');
+
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            jsonText = text.substring(firstBrace, lastBrace + 1);
+          }
         }
 
         const parsed: ChartData = JSON.parse(jsonText);
@@ -80,12 +89,26 @@ export default function ChartsScreen() {
           setAstroSigns(prev => ({ ...prev, rising: parsed.risingSign }));
         }
 
-        // Save and display the analysis
-        const analysisText = parsed.analysis || text;
-        setAnalysis(analysisText);
-        await saveChartAnalysis(analysisText);
-      } catch {
-        // If not valid JSON, use as plain text
+        // Extract and clean up the analysis text
+        let analysisText = parsed.analysis || '';
+
+        // Convert literal \n sequences to actual newlines
+        analysisText = analysisText
+          .replace(/\\n\\n/g, '\n\n')
+          .replace(/\\n/g, '\n')
+          .trim();
+
+        if (analysisText) {
+          setAnalysis(analysisText);
+          await saveChartAnalysis(analysisText);
+        } else {
+          // Fallback if analysis field is empty
+          setAnalysis(text);
+          await saveChartAnalysis(text);
+        }
+      } catch (parseError) {
+        console.error('JSON parsing failed:', parseError);
+        // If parsing fails completely, use the raw text as fallback
         setAnalysis(text);
         await saveChartAnalysis(text);
       }
@@ -144,7 +167,7 @@ export default function ChartsScreen() {
     if (!profile) return;
     setIsGenerating(true);
 
-    const prompt = `You are a mystical astrologer analyzing a birth chart. Provide a detailed, insightful reading.
+    const prompt = `You are a mystical astrologer. Analyze this birth chart and respond with ONLY a valid JSON object - no other text, no markdown, no explanation before or after.
 
 Birth Information:
 - Name: ${profile.fullName}
@@ -160,14 +183,10 @@ Current Calculations:
 - Destiny Number: ${numerology.destiny}
 - Soul Urge Number: ${numerology.soulUrge}
 
-Please respond with a JSON object in this exact format:
-{
-  "moonSign": "refined moon sign if you can estimate better, or use the provided one",
-  "risingSign": "refined rising sign if birth time was provided, or null",
-  "analysis": "Your full mystical analysis text here. Include sections on personality, strengths, life purpose, and spiritual guidance. Write naturally with line breaks between paragraphs."
-}
+Respond with EXACTLY this JSON structure (no markdown code blocks):
+{"moonSign": "${astroSigns.moon}", "risingSign": ${astroSigns.rising ? `"${astroSigns.rising}"` : 'null'}, "analysis": "Dear ${profile.fullName.split(' ')[0]}, [Your warm, mystical analysis here. Include insights about their Sun sign personality, Moon sign emotions, numerology life path, and spiritual guidance. Use proper paragraphs separated by actual newlines. 200-300 words total.]"}
 
-Important: The analysis should be warm, mystical, and insightful. Reference specific astrological and numerological meanings. Keep it personal and meaningful.`;
+CRITICAL: Output ONLY the JSON object. No text before or after. The analysis field should contain flowing prose with proper paragraphs.`;
 
     generateText(prompt);
   };
