@@ -36,37 +36,45 @@ import {
 
 const { width } = Dimensions.get('window');
 
-interface ChartData {
-  moonSign: string;
-  risingSign: string | null;
-  analysis: string;
-}
-
 // Helper to clean analysis text - handles stored JSON or raw text
 const cleanAnalysisText = (text: string): string => {
   if (!text) return '';
 
-  // Check if this looks like JSON (starts with { or contains "analysis":)
   const trimmed = text.trim();
-  if (trimmed.startsWith('{') || trimmed.includes('"analysis"')) {
+
+  // Check if this looks like JSON (starts with { or contains common JSON patterns)
+  if (trimmed.startsWith('{') || trimmed.includes('"analysis"') || trimmed.includes('"moonSign"')) {
     try {
-      // Try to extract JSON
-      const firstBrace = text.indexOf('{');
-      const lastBrace = text.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        const jsonStr = text.substring(firstBrace, lastBrace + 1);
-        const parsed = JSON.parse(jsonStr);
-        if (parsed.analysis) {
-          // Clean up the analysis text
-          return parsed.analysis
-            .replace(/\\n\\n/g, '\n\n')
-            .replace(/\\n/g, '\n')
-            .trim();
+      // Try to extract JSON from markdown code blocks first
+      const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      let jsonText = text;
+      if (codeBlockMatch) {
+        jsonText = codeBlockMatch[1].trim();
+      } else {
+        // Find the first '{' and last '}' to extract JSON object
+        const firstBrace = text.indexOf('{');
+        const lastBrace = text.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonText = text.substring(firstBrace, lastBrace + 1);
         }
+      }
+
+      const parsed = JSON.parse(jsonText);
+      if (parsed.analysis && typeof parsed.analysis === 'string') {
+        // Clean up the analysis text
+        return parsed.analysis
+          .replace(/\\n\\n/g, '\n\n')
+          .replace(/\\n/g, '\n')
+          .trim();
       }
     } catch {
       // If JSON parsing fails, continue to clean as raw text
     }
+  }
+
+  // If it still looks like raw JSON after failed parse, return empty to force regeneration
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    return '';
   }
 
   // Clean up any escaped newlines in raw text
@@ -130,56 +138,45 @@ export default function ChartsScreen() {
 
   const { generateText } = useTextGeneration({
     onSuccess: async (text) => {
-      // Robust JSON extraction and parsing
-      try {
-        let jsonText = text;
+      // Use the cleanAnalysisText helper which handles all JSON extraction
+      const cleanedAnalysis = cleanAnalysisText(text);
 
-        // First, try to extract from markdown code blocks
-        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          jsonText = codeBlockMatch[1].trim();
-        } else {
-          // Find the first '{' and last '}' to extract JSON object
+      if (cleanedAnalysis) {
+        // Successfully extracted analysis text
+        setAnalysis(cleanedAnalysis);
+        await saveChartAnalysis(cleanedAnalysis);
+
+        // Try to extract moon/rising signs from JSON if present
+        try {
           const firstBrace = text.indexOf('{');
           const lastBrace = text.lastIndexOf('}');
-
-          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-            jsonText = text.substring(firstBrace, lastBrace + 1);
+          if (firstBrace !== -1 && lastBrace !== -1) {
+            const jsonStr = text.substring(firstBrace, lastBrace + 1);
+            const parsed = JSON.parse(jsonStr);
+            if (parsed.moonSign) {
+              setAstroSigns(prev => ({ ...prev, moon: parsed.moonSign }));
+            }
+            if (parsed.risingSign) {
+              setAstroSigns(prev => ({ ...prev, rising: parsed.risingSign }));
+            }
           }
+        } catch {
+          // Ignore sign extraction errors
         }
+      } else {
+        // If cleaning returned empty (failed to extract), check if text looks like non-JSON prose
+        const trimmed = text.trim();
+        const looksLikeJSON = trimmed.startsWith('{') || trimmed.startsWith('[');
 
-        const parsed: ChartData = JSON.parse(jsonText);
-
-        // Update signs if AI refined them
-        if (parsed.moonSign) {
-          setAstroSigns(prev => ({ ...prev, moon: parsed.moonSign }));
-        }
-        if (parsed.risingSign) {
-          setAstroSigns(prev => ({ ...prev, rising: parsed.risingSign }));
-        }
-
-        // Extract and clean up the analysis text
-        let analysisText = parsed.analysis || '';
-
-        // Convert literal \n sequences to actual newlines
-        analysisText = analysisText
-          .replace(/\\n\\n/g, '\n\n')
-          .replace(/\\n/g, '\n')
-          .trim();
-
-        if (analysisText) {
-          setAnalysis(analysisText);
-          await saveChartAnalysis(analysisText);
+        if (!looksLikeJSON && trimmed.length > 50) {
+          // It's probably prose text without JSON wrapper - use it directly
+          setAnalysis(trimmed);
+          await saveChartAnalysis(trimmed);
         } else {
-          // Fallback if analysis field is empty
-          setAnalysis(text);
-          await saveChartAnalysis(text);
+          // Failed to extract valid analysis - show error state
+          console.error('Failed to extract analysis from response');
+          setAnalysis(null);
         }
-      } catch (parseError) {
-        console.error('JSON parsing failed:', parseError);
-        // If parsing fails completely, use the raw text as fallback
-        setAnalysis(text);
-        await saveChartAnalysis(text);
       }
       setIsGenerating(false);
     },

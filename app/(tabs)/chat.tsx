@@ -32,8 +32,13 @@ interface Message {
   timestamp: Date;
 }
 
-// Suggestion chips for new conversations
-const SUGGESTION_CHIPS = [
+interface OracleResponse {
+  reply: string;
+  suggestions: string[];
+}
+
+// Initial suggestion chips for new conversations
+const INITIAL_SUGGESTIONS = [
   'What does my Life Path number mean?',
   'Tell me about my Big Three.',
   'What energy should I focus on today?',
@@ -41,23 +46,90 @@ const SUGGESTION_CHIPS = [
   'How do my Sun and Moon work together?',
 ];
 
+// Fallback suggestions if parsing fails
+const FALLBACK_SUGGESTIONS = [
+  'Tell me more about this.',
+  'What should I focus on?',
+  'How does this affect my day?',
+];
+
+// Parse Oracle response - handles JSON with markdown code blocks
+const parseOracleResponse = (text: string): OracleResponse | null => {
+  try {
+    let jsonText = text;
+
+    // First, try to extract from markdown code blocks
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      jsonText = codeBlockMatch[1].trim();
+    } else {
+      // Find the first '{' and last '}' to extract JSON object
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonText = text.substring(firstBrace, lastBrace + 1);
+      }
+    }
+
+    const parsed = JSON.parse(jsonText);
+
+    // Validate structure
+    if (parsed.reply && typeof parsed.reply === 'string') {
+      return {
+        reply: parsed.reply.replace(/\\n/g, '\n').trim(),
+        suggestions: Array.isArray(parsed.suggestions)
+          ? parsed.suggestions.slice(0, 3)
+          : FALLBACK_SUGGESTIONS,
+      };
+    }
+  } catch {
+    // JSON parsing failed
+  }
+
+  return null;
+};
+
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [dailyReading, setDailyReading] = useState<DailyReading | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [currentSuggestions, setCurrentSuggestions] = useState<string[]>(INITIAL_SUGGESTIONS);
   const flatListRef = useRef<FlatList>(null);
+  const suggestionsScrollRef = useRef<ScrollView>(null);
 
   const { generateText, isLoading } = useTextGeneration({
     onSuccess: (response) => {
+      // Try to parse structured JSON response
+      const parsed = parseOracleResponse(response);
+
+      let replyText: string;
+      let newSuggestions: string[];
+
+      if (parsed) {
+        replyText = parsed.reply;
+        newSuggestions = parsed.suggestions;
+      } else {
+        // Fallback: use raw response and default suggestions
+        replyText = response;
+        newSuggestions = FALLBACK_SUGGESTIONS;
+      }
+
       const aiMessage: Message = {
         id: Date.now().toString(),
-        text: response,
+        text: replyText,
         isUser: false,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, aiMessage]);
+
+      // Update suggestions and reset scroll
+      setCurrentSuggestions(newSuggestions);
+      setTimeout(() => {
+        suggestionsScrollRef.current?.scrollTo({ x: 0, animated: true });
+      }, 100);
     },
     onError: (error) => {
       const errorMessage: Message = {
@@ -67,6 +139,7 @@ export default function ChatScreen() {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      setCurrentSuggestions(FALLBACK_SUGGESTIONS);
       console.error('AI Error:', error);
     },
   });
@@ -158,7 +231,12 @@ ${hasDailyReading ? `You have access to the user's current daily tarot reading. 
 - Reference specific cards by name when giving advice.
 - Connect the card meanings to the user's zodiac sign and birth details when relevant.` : ''}
 
-Use the user's birth details to personalize your guidance. Maintain a mystical tone without being overly theatrical. Keep responses to 2-3 sentences unless a longer explanation is truly needed.`;
+Use the user's birth details to personalize your guidance. Maintain a mystical tone without being overly theatrical. Keep responses to 2-3 sentences unless a longer explanation is truly needed.
+
+IMPORTANT: You MUST respond with ONLY a valid JSON object in this exact format:
+{"reply": "Your mystical answer here with **bold** for emphasis if needed", "suggestions": ["Short follow-up question 1?", "Short follow-up question 2?", "Short follow-up question 3?"]}
+
+The suggestions should be 3 short, relevant follow-up questions (max 6 words each) that naturally continue the conversation based on what you just discussed.`;
 
     const fullPrompt = `${systemPrompt}
 
@@ -170,7 +248,7 @@ ${historyParts.length > 0 ? 'Recent Conversation:\n' + historyParts.join('\n') :
 
 User's Question: ${userMessage}
 
-Respond as The Oracle:`;
+Respond with ONLY the JSON object:`;
 
     return fullPrompt;
   }, [userProfile, dailyReading, messages]);
@@ -302,21 +380,23 @@ Respond as The Oracle:`;
             </View>
           )}
 
-          {/* Suggestion Chips - only show at start of conversation */}
-          {messages.length <= 1 && !isLoading && (
+          {/* Suggestion Chips - show throughout conversation */}
+          {currentSuggestions.length > 0 && !isLoading && (
             <Animated.View
               entering={FadeIn.duration(400)}
               exiting={FadeOut.duration(200)}
               style={styles.suggestionsContainer}
+              key={currentSuggestions.join(',')} // Re-animate when suggestions change
             >
               <ScrollView
+                ref={suggestionsScrollRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.suggestionsContent}
               >
-                {SUGGESTION_CHIPS.map((chip, index) => (
+                {currentSuggestions.map((chip, index) => (
                   <TouchableOpacity
-                    key={index}
+                    key={`${index}-${chip}`}
                     style={styles.suggestionChip}
                     onPress={() => handleChipPress(chip)}
                     activeOpacity={0.7}
