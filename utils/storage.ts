@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   DAILY_READING: '@tarotify_daily_reading',
   STORED_IMAGES: '@tarotify_stored_images',
   CARD_BACK_IMAGE: '@tarotify_card_back_image',
+  CHART_ANALYSIS: '@tarotify_chart_analysis',
 };
 
 // User Profile Storage
@@ -172,6 +173,25 @@ export const getCardBackImage = async (): Promise<string | null> => {
     return await AsyncStorage.getItem(STORAGE_KEYS.CARD_BACK_IMAGE);
   } catch (error) {
     console.error('Error getting card back image:', error);
+    return null;
+  }
+};
+
+// Chart Analysis Storage
+export const saveChartAnalysis = async (analysis: string): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.CHART_ANALYSIS, analysis);
+  } catch (error) {
+    console.error('Error saving chart analysis:', error);
+    throw error;
+  }
+};
+
+export const getChartAnalysis = async (): Promise<string | null> => {
+  try {
+    return await AsyncStorage.getItem(STORAGE_KEYS.CHART_ANALYSIS);
+  } catch (error) {
+    console.error('Error getting chart analysis:', error);
     return null;
   }
 };
