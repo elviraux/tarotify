@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ViewStyle,
+  View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 import { hapticMedium } from '@/utils/haptics';
 
@@ -18,6 +20,7 @@ interface Props {
   loading?: boolean;
   variant?: 'filled' | 'outline';
   style?: ViewStyle;
+  icon?: keyof typeof Ionicons.glyphMap;
 }
 
 export default function GoldButton({
@@ -27,6 +30,7 @@ export default function GoldButton({
   loading = false,
   variant = 'filled',
   style,
+  icon,
 }: Props) {
   const handlePress = () => {
     hapticMedium();
@@ -44,7 +48,10 @@ export default function GoldButton({
         {loading ? (
           <ActivityIndicator color={Colors.celestialGold} />
         ) : (
-          <Text style={styles.outlineText}>{title}</Text>
+          <View style={styles.buttonContent}>
+            {icon && <Ionicons name={icon} size={20} color={Colors.celestialGold} style={styles.icon} />}
+            <Text style={styles.outlineText}>{title}</Text>
+          </View>
         )}
       </TouchableOpacity>
     );
@@ -66,7 +73,10 @@ export default function GoldButton({
         {loading ? (
           <ActivityIndicator color={Colors.deepMidnightBlue} />
         ) : (
-          <Text style={styles.filledText}>{title}</Text>
+          <View style={styles.buttonContent}>
+            {icon && <Ionicons name={icon} size={20} color={Colors.deepMidnightBlue} style={styles.icon} />}
+            <Text style={styles.filledText}>{title}</Text>
+          </View>
         )}
       </LinearGradient>
     </TouchableOpacity>
@@ -107,5 +117,13 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.5,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    marginRight: Spacing.sm,
   },
 });

@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -303,6 +304,33 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
 
   const allCardsRevealed = dailyReading?.cards.every(c => c.isRevealed) ?? false;
 
+  // Share reading functionality
+  const handleShareReading = useCallback(async () => {
+    if (!dailyReading) return;
+
+    const pastCard = dailyReading.cards.find(c => c.position === 'past')?.card.name || '';
+    const presentCard = dailyReading.cards.find(c => c.position === 'present')?.card.name || '';
+    const futureCard = dailyReading.cards.find(c => c.position === 'future')?.card.name || '';
+
+    const shareMessage = `✨ My Daily Tarot Reading ✨
+
+🃏 Past: ${pastCard}
+🃏 Present: ${presentCard}
+🃏 Future: ${futureCard}
+
+${dailyReading.mainExplanation}
+
+🌙 Read more on Tarotify`;
+
+    try {
+      await Share.share({
+        message: shareMessage,
+      });
+    } catch (error) {
+      console.error('Error sharing reading:', error);
+    }
+  }, [dailyReading]);
+
   if (isLoading) {
     return (
       <GradientBackground>
@@ -417,6 +445,20 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
                       baseStyle={styles.explanationText}
                     />
                   </LinearGradient>
+                </Animated.View>
+              )}
+
+              {/* Share Reading Button */}
+              {allCardsRevealed && (
+                <Animated.View
+                  entering={FadeInUp.delay(600).duration(600)}
+                  style={styles.shareContainer}
+                >
+                  <GoldButton
+                    title="Share Reading"
+                    onPress={handleShareReading}
+                    icon="share-social-outline"
+                  />
                 </Animated.View>
               )}
             </>
@@ -547,5 +589,10 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     textAlign: 'left',
     letterSpacing: 0.2,
+  },
+  shareContainer: {
+    marginTop: Spacing.lg,
+    marginHorizontal: Spacing.xl,
+    marginBottom: Spacing.md,
   },
 });
