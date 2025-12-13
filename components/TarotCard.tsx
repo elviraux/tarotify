@@ -217,7 +217,7 @@ export default function TarotCard({
 
       {/* Description (shown when revealed) */}
       {isRevealed && shortDescription && (
-        <Text style={styles.description} numberOfLines={3}>
+        <Text style={styles.description} numberOfLines={6}>
           {shortDescription}
         </Text>
       )}
@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     marginTop: Spacing.xs,
     textAlign: 'center',
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 2,
     lineHeight: 14,
-    maxWidth: CARD_WIDTH + 20,
+    maxWidth: CARD_WIDTH + 30,
   },
 });

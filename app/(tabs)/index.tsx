@@ -1,5 +1,5 @@
 // Home Screen - Daily Reading with Lazy Image Generation
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -23,7 +23,7 @@ import {
   getTodayDateString,
 } from '@/utils/storage';
 import { formatDateLong } from '@/utils/formatDate';
-import { UserProfile, DailyReading, CardReading } from '@/types';
+import { UserProfile, DailyReading, CardReading, TarotCard as TarotCardData } from '@/types';
 import { useTextGeneration } from '@fastshot/ai';
 import { useCardBack } from '@/hooks/useCardImages';
 import { getCardImageUri } from '@/utils/imageStorage';
@@ -52,15 +52,93 @@ export default function HomeScreen() {
   const [cardImages, setCardImages] = useState<Record<number, string | null>>({});
   const [generatingCardIds, setGeneratingCardIds] = useState<Set<number>>(new Set());
 
+  // Ref to store pending cards during AI generation
+  const pendingCardsRef = useRef<TarotCardData[] | null>(null);
+
   // Card back hook
   const cardBack = useCardBack();
 
-  const { generateText, data: aiText } = useTextGeneration({
-    onSuccess: () => {
+  // Helper to finalize and save reading
+  const finalizeReading = useCallback(async (
+    selectedCards: TarotCardData[],
+    aiResponse: string | null
+  ) => {
+    if (!userProfile) return;
+
+    // Parse AI response or use default
+    let interpretations = {
+      past: selectedCards[0].uprightMeaning,
+      present: selectedCards[1].uprightMeaning,
+      future: selectedCards[2].uprightMeaning,
+      dailyMessage: `Today's energies suggest a significant shift. The combination of ${selectedCards[0].name}, ${selectedCards[1].name}, and ${selectedCards[2].name} speaks to your journey of transformation. Trust in the cosmic flow and embrace the wisdom these cards offer.`,
+    };
+
+    if (aiResponse) {
+      try {
+        // Try to extract JSON from the response (handle markdown code blocks)
+        let jsonStr = aiResponse;
+        const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[1].trim();
+        }
+        const parsed = JSON.parse(jsonStr);
+        interpretations = { ...interpretations, ...parsed };
+      } catch {
+        console.log('Failed to parse AI response, using defaults');
+      }
+    }
+
+    // Create card readings with interpretations
+    const cardReadings: CardReading[] = selectedCards.map((card, index) => ({
+      card,
+      position: (['past', 'present', 'future'] as const)[index],
+      isRevealed: false,
+      shortDescription: index === 0 ? interpretations.past :
+                        index === 1 ? interpretations.present :
+                        interpretations.future,
+    }));
+
+    // Create and save the reading
+    const reading: DailyReading = {
+      id: `reading_${Date.now()}`,
+      date: getTodayDateString(),
+      cards: cardReadings,
+      mainExplanation: interpretations.dailyMessage,
+      userProfile,
+      createdAt: new Date(),
+    };
+
+    await saveDailyReading(reading);
+    setDailyReading(reading);
+
+    // Load any existing images for the new cards
+    const images: Record<number, string | null> = {};
+    for (const card of selectedCards) {
+      const uri = await getCardImageUri(card.id);
+      if (uri) {
+        images[card.id] = uri;
+      }
+    }
+    setCardImages(images);
+    setIsGenerating(false);
+    pendingCardsRef.current = null;
+  }, [userProfile]);
+
+  const { generateText } = useTextGeneration({
+    onSuccess: (response) => {
       console.log('AI interpretation generated');
+      const cards = pendingCardsRef.current;
+      if (cards) {
+        finalizeReading(cards, response);
+      }
     },
     onError: (error) => {
       console.error('AI error:', error);
+      // Still finalize with defaults on error
+      const cards = pendingCardsRef.current;
+      if (cards) {
+        finalizeReading(cards, null);
+      }
     },
   });
 
@@ -126,15 +204,10 @@ export default function HomeScreen() {
       // Select 3 random cards
       const selectedCards = getRandomCards(3);
 
-      // Create card readings
-      const cardReadings: CardReading[] = selectedCards.map((card, index) => ({
-        card,
-        position: (['past', 'present', 'future'] as const)[index],
-        isRevealed: false,
-        shortDescription: '',
-      }));
+      // Store cards in ref for use in onSuccess callback
+      pendingCardsRef.current = selectedCards;
 
-      // Generate AI interpretations
+      // Generate AI interpretations with shorter descriptions for card layout
       const prompt = `You are a mystical tarot reader. The seeker is ${userProfile.fullName}, born on ${formatDateLong(userProfile.dateOfBirth)}.
 
 For their daily reading, they drew these three cards:
@@ -142,64 +215,25 @@ For their daily reading, they drew these three cards:
 2. PRESENT: ${selectedCards[1].name} - ${selectedCards[1].uprightMeaning}
 3. FUTURE: ${selectedCards[2].name} - ${selectedCards[2].uprightMeaning}
 
-Provide a mystical interpretation in this exact JSON format (no other text):
+Provide a mystical interpretation in this exact JSON format (no other text, no markdown):
 {
-  "past": "One sentence for the past card (20-30 words)",
-  "present": "One sentence for the present card (20-30 words)",
-  "future": "One sentence for the future card (20-30 words)",
-  "dailyMessage": "A paragraph (60-80 words) weaving all three cards together as guidance for today"
+  "past": "Brief insight for past card (max 15 words)",
+  "present": "Brief insight for present card (max 15 words)",
+  "future": "Brief insight for future card (max 15 words)",
+  "dailyMessage": "A paragraph (60-80 words) weaving all three cards together as personalized guidance for today based on their birth date and the specific cards drawn"
 }`;
 
+      // Trigger AI generation - result will be handled in onSuccess callback
       await generateText(prompt);
-
-      // Parse AI response or use default
-      let interpretations = {
-        past: selectedCards[0].uprightMeaning,
-        present: selectedCards[1].uprightMeaning,
-        future: selectedCards[2].uprightMeaning,
-        dailyMessage: `Today's energies suggest a significant shift. The combination of ${selectedCards[0].name}, ${selectedCards[1].name}, and ${selectedCards[2].name} speaks to your journey of transformation. Trust in the cosmic flow and embrace the wisdom these cards offer.`,
-      };
-
-      if (aiText) {
-        try {
-          const parsed = JSON.parse(aiText);
-          interpretations = { ...interpretations, ...parsed };
-        } catch {
-          // Use default interpretations
-        }
-      }
-
-      // Update card readings with interpretations
-      cardReadings[0].shortDescription = interpretations.past;
-      cardReadings[1].shortDescription = interpretations.present;
-      cardReadings[2].shortDescription = interpretations.future;
-
-      // Create and save the reading
-      const reading: DailyReading = {
-        id: `reading_${Date.now()}`,
-        date: getTodayDateString(),
-        cards: cardReadings,
-        mainExplanation: interpretations.dailyMessage,
-        userProfile,
-        createdAt: new Date(),
-      };
-
-      await saveDailyReading(reading);
-      setDailyReading(reading);
-
-      // Load any existing images for the new cards
-      const images: Record<number, string | null> = {};
-      for (const card of selectedCards) {
-        const uri = await getCardImageUri(card.id);
-        if (uri) {
-          images[card.id] = uri;
-        }
-      }
-      setCardImages(images);
     } catch (error) {
       console.error('Error generating reading:', error);
-    } finally {
-      setIsGenerating(false);
+      // Finalize with defaults on error
+      const cards = pendingCardsRef.current;
+      if (cards) {
+        await finalizeReading(cards, null);
+      } else {
+        setIsGenerating(false);
+      }
     }
   };
 
