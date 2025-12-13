@@ -308,15 +308,18 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
   const handleShareReading = useCallback(async () => {
     if (!dailyReading) return;
 
-    const pastCard = dailyReading.cards.find(c => c.position === 'past')?.card.name || '';
-    const presentCard = dailyReading.cards.find(c => c.position === 'present')?.card.name || '';
-    const futureCard = dailyReading.cards.find(c => c.position === 'future')?.card.name || '';
+    const pastCard = dailyReading.cards.find(c => c.position === 'past');
+    const presentCard = dailyReading.cards.find(c => c.position === 'present');
+    const futureCard = dailyReading.cards.find(c => c.position === 'future');
+
+    // Get the Present card image for sharing (the central, most prominent card)
+    const presentCardImageUri = presentCard ? cardImages[presentCard.card.id] : null;
 
     const shareMessage = `✨ My Daily Tarot Reading ✨
 
-🃏 Past: ${pastCard}
-🃏 Present: ${presentCard}
-🃏 Future: ${futureCard}
+🃏 Past: ${pastCard?.card.name || ''}
+🃏 Present: ${presentCard?.card.name || ''}
+🃏 Future: ${futureCard?.card.name || ''}
 
 ${dailyReading.mainExplanation}
 
@@ -325,11 +328,12 @@ ${dailyReading.mainExplanation}
     try {
       await Share.share({
         message: shareMessage,
+        ...(presentCardImageUri && { url: presentCardImageUri }),
       });
     } catch (error) {
       console.error('Error sharing reading:', error);
     }
-  }, [dailyReading]);
+  }, [dailyReading, cardImages]);
 
   if (isLoading) {
     return (
