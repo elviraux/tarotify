@@ -285,9 +285,25 @@ export default function SettingsScreen() {
             <View style={styles.headerSpacer} />
           </Animated.View>
 
+          {/* Profile Section */}
+          <Animated.View
+            entering={FadeInUp.delay(100).duration(600)}
+            style={styles.section}
+          >
+            <Text style={styles.sectionTitle}>Profile</Text>
+            <View style={styles.sectionContent}>
+              <SettingItem
+                icon="person-circle-outline"
+                title="Manage Profile"
+                subtitle="Update Name, Birth Date & Time"
+                onPress={() => router.push('/profile')}
+              />
+            </View>
+          </Animated.View>
+
           {/* Preferences Section */}
           <Animated.View
-            entering={FadeInUp.delay(200).duration(600)}
+            entering={FadeInUp.delay(250).duration(600)}
             style={styles.section}
           >
             <Text style={styles.sectionTitle}>Preferences</Text>
@@ -366,7 +382,7 @@ export default function SettingsScreen() {
 
           {/* Account Section */}
           <Animated.View
-            entering={FadeInUp.delay(400).duration(600)}
+            entering={FadeInUp.delay(450).duration(600)}
             style={styles.section}
           >
             <Text style={styles.sectionTitle}>Account</Text>
@@ -388,7 +404,7 @@ export default function SettingsScreen() {
 
           {/* About Section */}
           <Animated.View
-            entering={FadeInUp.delay(600).duration(600)}
+            entering={FadeInUp.delay(650).duration(600)}
             style={styles.section}
           >
             <Text style={styles.sectionTitle}>About</Text>
@@ -414,7 +430,7 @@ export default function SettingsScreen() {
 
           {/* Footer */}
           <Animated.View
-            entering={FadeInUp.delay(800).duration(600)}
+            entering={FadeInUp.delay(850).duration(600)}
             style={styles.footer}
           >
             <Text style={styles.footerText}>

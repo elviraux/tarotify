@@ -366,13 +366,13 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
         >
           {/* Header */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.header}>
-            {/* Profile Button */}
+            {/* Settings Button */}
             <TouchableOpacity
-              style={styles.profileButton}
-              onPress={() => router.push('/profile')}
+              style={styles.settingsButton}
+              onPress={() => router.push('/settings')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="person-circle-outline" size={30} color={Colors.celestialGold} />
+              <Ionicons name="settings-outline" size={26} color={Colors.celestialGold} />
             </TouchableOpacity>
 
             <View style={styles.headerContent}>
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingHorizontal: Spacing.lg,
   },
-  profileButton: {
+  settingsButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     alignItems: 'center',
-    paddingRight: 44 + Spacing.sm, // Balance for profile button
+    paddingRight: 44 + Spacing.sm, // Balance for settings button
   },
   title: {
     fontSize: 28,
