@@ -26,6 +26,7 @@ import TimeWheelPicker from '@/components/TimeWheelPicker';
 import GoldButton from '@/components/GoldButton';
 import { Colors, Spacing } from '@/constants/theme';
 import { saveUserProfile, setOnboardingComplete } from '@/utils/storage';
+import { registerForNotifications, scheduleDailyReminder } from '@/utils/notifications';
 import { UserProfile, OnboardingState } from '@/types';
 
 const { height } = Dimensions.get('window');
@@ -59,6 +60,13 @@ export default function OnboardingScreen() {
         };
         await saveUserProfile(profile);
         await setOnboardingComplete(true);
+
+        // Request notification permissions at the end of onboarding
+        const permissionGranted = await registerForNotifications();
+        if (permissionGranted) {
+          await scheduleDailyReminder();
+        }
+
         router.replace('/(tabs)');
       } catch (error) {
         console.error('Error saving profile:', error);
