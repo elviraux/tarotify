@@ -23,7 +23,7 @@ import GoldButton from '@/components/GoldButton';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { tarotDeck, getMajorArcana, getMinorArcana } from '@/data/tarotDeck';
 import { TarotCard } from '@/types';
-import { getCardImageUri, getGeneratedCardIds } from '@/utils/imageStorage';
+import { getCardImageUri, getGeneratedCardIds, resolveCardImageSource } from '@/utils/imageStorage';
 import { generateCardImage, manifestFullDeck, getMissingCardsCount } from '@/services/cardImageService';
 
 const { width } = Dimensions.get('window');
@@ -45,6 +45,8 @@ interface CardItemProps {
 
 const CardItem = ({ card, imageUri, isGenerating, onPress, onGenerate, disableGenerate }: CardItemProps) => {
   const hasImage = !!imageUri;
+  // Resolve the image source (handles both bundled and filesystem URIs)
+  const imageSource = resolveCardImageSource(card.id, imageUri);
 
   return (
     <Animated.View entering={FadeInUp.duration(400)} style={styles.cardItem}>
@@ -57,9 +59,9 @@ const CardItem = ({ card, imageUri, isGenerating, onPress, onGenerate, disableGe
           colors={hasImage ? ['#2D2418', '#1A1408'] : ['#1A1F2E', '#0B0F19']}
           style={styles.cardGradient}
         >
-          {hasImage ? (
+          {hasImage && imageSource ? (
             <Image
-              source={{ uri: imageUri }}
+              source={imageSource}
               style={styles.cardImage}
               contentFit="cover"
               transition={300}
@@ -522,7 +524,7 @@ export default function DeckGalleryScreen() {
 
                   {selectedCard && cardImages[selectedCard.id] ? (
                     <Image
-                      source={{ uri: cardImages[selectedCard.id]! }}
+                      source={resolveCardImageSource(selectedCard.id, cardImages[selectedCard.id]) || undefined}
                       style={styles.modalImage}
                       contentFit="cover"
                     />

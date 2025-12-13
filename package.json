@@ -3,7 +3,11 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "generate:cards": "npx ts-node scripts/generate-assets.ts",
+    "generate:cards:all": "npx ts-node scripts/generate-assets.ts --all",
+    "generate:cards:major": "npx ts-node scripts/generate-assets.ts --major",
+    "generate:cards:missing": "npx ts-node scripts/generate-assets.ts --missing"
   },
   "dependencies": {
     "@expo/cli": "^54.0.10",
@@ -45,9 +49,11 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@expo/ngrok": "^4.1.3",
+    "@types/node": "^20.10.0",
     "@types/react": "~19.1.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "~5.9.2"
   },
   "private": true
