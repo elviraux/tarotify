@@ -6,6 +6,7 @@ import {
   getCardImageUri,
   getCardBackUri,
   saveCardBackImage,
+  getGeneratedCardIds,
 } from '@/utils/imageStorage';
 
 // Style constants for consistent card artwork
@@ -177,4 +178,80 @@ export const batchGenerateCards = async (
   }
 
   return results;
+};
+
+// Manifest Full Deck Progress Callbacks
+export interface ManifestProgressCallbacks {
+  onStart?: (totalMissing: number) => void;
+  onProgress?: (current: number, total: number, cardName: string) => void;
+  onCardComplete?: (cardId: number, uri: string | null, success: boolean) => void;
+  onComplete?: (successCount: number, failedCount: number) => void;
+  onError?: (error: Error, cardName: string) => void;
+  shouldCancel?: () => boolean;
+}
+
+// Manifest Full Deck - Generate all missing cards sequentially
+export const manifestFullDeck = async (
+  allCards: TarotCard[],
+  callbacks?: ManifestProgressCallbacks
+): Promise<{ success: number; failed: number; cancelled: boolean }> => {
+  // Get list of already generated card IDs
+  const generatedIds = await getGeneratedCardIds();
+  const generatedIdSet = new Set(generatedIds);
+
+  // Filter for missing cards only
+  const missingCards = allCards.filter(card => !generatedIdSet.has(card.id));
+
+  if (missingCards.length === 0) {
+    callbacks?.onComplete?.(0, 0);
+    return { success: 0, failed: 0, cancelled: false };
+  }
+
+  callbacks?.onStart?.(missingCards.length);
+
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (let i = 0; i < missingCards.length; i++) {
+    // Check if cancellation was requested
+    if (callbacks?.shouldCancel?.()) {
+      return { success: successCount, failed: failedCount, cancelled: true };
+    }
+
+    const card = missingCards[i];
+    callbacks?.onProgress?.(i + 1, missingCards.length, card.name);
+
+    try {
+      const uri = await generateCardImage(card);
+
+      if (uri) {
+        successCount++;
+        callbacks?.onCardComplete?.(card.id, uri, true);
+      } else {
+        failedCount++;
+        callbacks?.onCardComplete?.(card.id, null, false);
+        callbacks?.onError?.(new Error('Failed to generate image'), card.name);
+      }
+    } catch (error) {
+      failedCount++;
+      callbacks?.onCardComplete?.(card.id, null, false);
+      callbacks?.onError?.(error as Error, card.name);
+      // Continue to next card even on error
+    }
+
+    // Small delay between cards to avoid rate limiting
+    if (i < missingCards.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+
+  callbacks?.onComplete?.(successCount, failedCount);
+  return { success: successCount, failed: failedCount, cancelled: false };
+};
+
+// Get missing cards count
+export const getMissingCardsCount = async (allCards: TarotCard[]): Promise<number> => {
+  const generatedIds = await getGeneratedCardIds();
+  const generatedIdSet = new Set(generatedIds);
+  return allCards.filter(card => !generatedIdSet.has(card.id)).length;
 };

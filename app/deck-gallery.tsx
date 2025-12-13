@@ -1,5 +1,5 @@
 // Deck Gallery Screen - View all 78 tarot cards and their generated art
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,20 +10,21 @@ import {
   Modal,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp, FadeOut, FadeInDown } from 'react-native-reanimated';
 import GradientBackground from '@/components/GradientBackground';
 import GoldButton from '@/components/GoldButton';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { tarotDeck, getMajorArcana, getMinorArcana } from '@/data/tarotDeck';
 import { TarotCard } from '@/types';
 import { getCardImageUri, getGeneratedCardIds } from '@/utils/imageStorage';
-import { generateCardImage } from '@/services/cardImageService';
+import { generateCardImage, manifestFullDeck, getMissingCardsCount } from '@/services/cardImageService';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 8;
@@ -39,9 +40,10 @@ interface CardItemProps {
   isGenerating: boolean;
   onPress: () => void;
   onGenerate: () => void;
+  disableGenerate?: boolean;
 }
 
-const CardItem = ({ card, imageUri, isGenerating, onPress, onGenerate }: CardItemProps) => {
+const CardItem = ({ card, imageUri, isGenerating, onPress, onGenerate, disableGenerate }: CardItemProps) => {
   const hasImage = !!imageUri;
 
   return (
@@ -71,16 +73,18 @@ const CardItem = ({ card, imageUri, isGenerating, onPress, onGenerate }: CardIte
                   <Text style={styles.placeholderSymbol}>
                     {card.arcana === 'major' ? '\u2605' : '\u2726'}
                   </Text>
-                  <TouchableOpacity
-                    style={styles.generateButton}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      onGenerate();
-                    }}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Ionicons name="sparkles" size={14} color={Colors.celestialGold} />
-                  </TouchableOpacity>
+                  {!disableGenerate && (
+                    <TouchableOpacity
+                      style={styles.generateButton}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        onGenerate();
+                      }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="sparkles" size={14} color={Colors.celestialGold} />
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
             </View>
@@ -96,6 +100,16 @@ const CardItem = ({ card, imageUri, isGenerating, onPress, onGenerate }: CardIte
   );
 };
 
+// Manifestation state interface
+interface ManifestationState {
+  isActive: boolean;
+  current: number;
+  total: number;
+  currentCardName: string;
+  successCount: number;
+  failedCount: number;
+}
+
 export default function DeckGalleryScreen() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [cardImages, setCardImages] = useState<Record<number, string | null>>({});
@@ -104,10 +118,31 @@ export default function DeckGalleryScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ total: 78, generated: 0 });
 
+  // Manifestation state
+  const [manifestation, setManifestation] = useState<ManifestationState>({
+    isActive: false,
+    current: 0,
+    total: 0,
+    currentCardName: '',
+    successCount: 0,
+    failedCount: 0,
+  });
+  const [missingCount, setMissingCount] = useState(0);
+  const cancelManifestRef = useRef(false);
+
   // Load existing card images
   useEffect(() => {
     loadCardImages();
   }, []);
+
+  // Update missing count when card images change
+  useEffect(() => {
+    const updateMissingCount = async () => {
+      const count = await getMissingCardsCount(tarotDeck);
+      setMissingCount(count);
+    };
+    updateMissingCount();
+  }, [cardImages]);
 
   const loadCardImages = async () => {
     setIsLoading(true);
@@ -145,6 +180,8 @@ export default function DeckGalleryScreen() {
   }, [filter, cardImages]);
 
   const handleGenerateCard = async (card: TarotCard) => {
+    // Don't allow individual generation during manifestation
+    if (manifestation.isActive) return;
     if (generatingCardIds.has(card.id) || cardImages[card.id]) return;
 
     setGeneratingCardIds(prev => new Set(prev).add(card.id));
@@ -164,6 +201,127 @@ export default function DeckGalleryScreen() {
         return newSet;
       });
     }
+  };
+
+  // Start the full deck manifestation
+  const handleStartManifestation = async () => {
+    if (manifestation.isActive) return;
+
+    if (missingCount === 0) {
+      Alert.alert(
+        'Deck Complete',
+        'All 78 cards have already been revealed! Your Deck of Destiny is complete.',
+        [{ text: 'Wonderful', style: 'default' }]
+      );
+      return;
+    }
+
+    // Confirm before starting
+    Alert.alert(
+      'Manifest Full Deck',
+      `This will reveal ${missingCount} remaining cards. This may take a while and uses AI generation for each card.\n\nContinue?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Begin Manifestation',
+          style: 'default',
+          onPress: startManifestation,
+        },
+      ]
+    );
+  };
+
+  const startManifestation = async () => {
+    cancelManifestRef.current = false;
+
+    setManifestation({
+      isActive: true,
+      current: 0,
+      total: missingCount,
+      currentCardName: 'Preparing...',
+      successCount: 0,
+      failedCount: 0,
+    });
+
+    try {
+      await manifestFullDeck(tarotDeck, {
+        onStart: (totalMissing) => {
+          setManifestation(prev => ({
+            ...prev,
+            total: totalMissing,
+          }));
+        },
+        onProgress: (current, total, cardName) => {
+          setManifestation(prev => ({
+            ...prev,
+            current,
+            total,
+            currentCardName: cardName,
+          }));
+        },
+        onCardComplete: (cardId, uri, success) => {
+          if (success && uri) {
+            setCardImages(prev => ({ ...prev, [cardId]: uri }));
+            setStats(prev => ({ ...prev, generated: prev.generated + 1 }));
+            setManifestation(prev => ({
+              ...prev,
+              successCount: prev.successCount + 1,
+            }));
+          } else {
+            setManifestation(prev => ({
+              ...prev,
+              failedCount: prev.failedCount + 1,
+            }));
+          }
+        },
+        onComplete: (successCount, failedCount) => {
+          setManifestation(prev => ({
+            ...prev,
+            isActive: false,
+            currentCardName: 'Complete',
+          }));
+
+          const message = failedCount > 0
+            ? `Successfully revealed ${successCount} cards. ${failedCount} cards could not be generated and can be tried again later.`
+            : `Successfully revealed all ${successCount} cards! Your Deck of Destiny grows stronger.`;
+
+          Alert.alert(
+            'Manifestation Complete',
+            message,
+            [{ text: 'Wonderful', style: 'default' }]
+          );
+        },
+        onError: (error, cardName) => {
+          console.error(`Error manifesting ${cardName}:`, error);
+        },
+        shouldCancel: () => cancelManifestRef.current,
+      });
+    } catch (error) {
+      console.error('Manifestation error:', error);
+      setManifestation(prev => ({ ...prev, isActive: false }));
+      Alert.alert(
+        'Manifestation Interrupted',
+        'The manifestation was interrupted. You can try again later.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleCancelManifestation = () => {
+    Alert.alert(
+      'Cancel Manifestation',
+      'Are you sure you want to stop the manifestation? Progress so far will be saved.',
+      [
+        { text: 'Continue Manifesting', style: 'cancel' },
+        {
+          text: 'Stop',
+          style: 'destructive',
+          onPress: () => {
+            cancelManifestRef.current = true;
+          },
+        },
+      ]
+    );
   };
 
   const handleCardPress = (card: TarotCard) => {
@@ -194,6 +352,7 @@ export default function DeckGalleryScreen() {
       isGenerating={generatingCardIds.has(item.id)}
       onPress={() => handleCardPress(item)}
       onGenerate={() => handleGenerateCard(item)}
+      disableGenerate={manifestation.isActive}
     />
   );
 
@@ -216,8 +375,13 @@ export default function DeckGalleryScreen() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
+            disabled={manifestation.isActive}
           >
-            <Ionicons name="chevron-back" size={28} color={Colors.celestialGold} />
+            <Ionicons
+              name="chevron-back"
+              size={28}
+              color={manifestation.isActive ? Colors.moonlightGray : Colors.celestialGold}
+            />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.title}>Deck of Destiny</Text>
@@ -225,20 +389,84 @@ export default function DeckGalleryScreen() {
               {stats.generated} of {stats.total} cards revealed
             </Text>
           </View>
-          <View style={styles.headerRight} />
+          <TouchableOpacity
+            style={[
+              styles.manifestButton,
+              manifestation.isActive && styles.manifestButtonActive,
+            ]}
+            onPress={handleStartManifestation}
+            disabled={manifestation.isActive || missingCount === 0}
+          >
+            <Ionicons
+              name="sparkles"
+              size={22}
+              color={missingCount === 0 ? Colors.moonlightGray : Colors.celestialGold}
+            />
+          </TouchableOpacity>
         </Animated.View>
 
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                { width: `${(stats.generated / stats.total) * 100}%` }
-              ]}
-            />
+        {/* Progress Bar / Manifestation Progress */}
+        {manifestation.isActive ? (
+          <Animated.View
+            entering={FadeInDown.duration(300)}
+            style={styles.manifestationContainer}
+          >
+            <LinearGradient
+              colors={['rgba(221, 133, 216, 0.15)', 'rgba(221, 133, 216, 0.05)']}
+              style={styles.manifestationGradient}
+            >
+              <View style={styles.manifestationHeader}>
+                <View style={styles.manifestationIconContainer}>
+                  <ActivityIndicator size="small" color={Colors.celestialGold} />
+                </View>
+                <View style={styles.manifestationInfo}>
+                  <Text style={styles.manifestationTitle}>Manifestation in Progress</Text>
+                  <Text style={styles.manifestationSubtitle}>
+                    Divining card {manifestation.current} of {manifestation.total}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.manifestationCancelButton}
+                  onPress={handleCancelManifestation}
+                >
+                  <Ionicons name="close-circle" size={24} color={Colors.moonlightGray} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.manifestationCardName} numberOfLines={1}>
+                {manifestation.currentCardName}...
+              </Text>
+              <View style={styles.manifestationProgressBar}>
+                <Animated.View
+                  style={[
+                    styles.manifestationProgressFill,
+                    { width: `${manifestation.total > 0 ? (manifestation.current / manifestation.total) * 100 : 0}%` }
+                  ]}
+                />
+              </View>
+              <View style={styles.manifestationStats}>
+                <Text style={styles.manifestationStatText}>
+                  <Text style={styles.manifestationStatSuccess}>{manifestation.successCount}</Text> revealed
+                </Text>
+                {manifestation.failedCount > 0 && (
+                  <Text style={styles.manifestationStatText}>
+                    <Text style={styles.manifestationStatFailed}>{manifestation.failedCount}</Text> failed
+                  </Text>
+                )}
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        ) : (
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <Animated.View
+                style={[
+                  styles.progressFill,
+                  { width: `${(stats.generated / stats.total) * 100}%` }
+                ]}
+              />
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Filters */}
         <View style={styles.filtersContainer}>
@@ -321,7 +549,7 @@ export default function DeckGalleryScreen() {
                     </Text>
                   </View>
 
-                  {selectedCard && !cardImages[selectedCard.id] && (
+                  {selectedCard && !cardImages[selectedCard.id] && !manifestation.isActive && (
                     <View style={styles.modalActions}>
                       <GoldButton
                         title={generatingCardIds.has(selectedCard.id) ? 'Generating...' : 'Reveal This Card'}
@@ -372,8 +600,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  headerRight: {
+  manifestButton: {
     width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(221, 133, 216, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.3)',
+  },
+  manifestButtonActive: {
+    opacity: 0.5,
   },
   title: {
     fontSize: 24,
@@ -400,6 +638,83 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.celestialGold,
     borderRadius: 2,
+  },
+  // Manifestation styles
+  manifestationContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  manifestationGradient: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.3)',
+  },
+  manifestationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  manifestationIconContainer: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
+  },
+  manifestationInfo: {
+    flex: 1,
+  },
+  manifestationTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.celestialGold,
+    fontFamily: 'serif',
+  },
+  manifestationSubtitle: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  manifestationCancelButton: {
+    padding: Spacing.xs,
+  },
+  manifestationCardName: {
+    fontSize: 13,
+    color: Colors.textPrimary,
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
+    paddingLeft: 40,
+  },
+  manifestationProgressBar: {
+    height: 6,
+    backgroundColor: 'rgba(221, 133, 216, 0.2)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: Spacing.sm,
+  },
+  manifestationProgressFill: {
+    height: '100%',
+    backgroundColor: Colors.celestialGold,
+    borderRadius: 3,
+  },
+  manifestationStats: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.md,
+  },
+  manifestationStatText: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+  },
+  manifestationStatSuccess: {
+    color: '#4ADE80',
+    fontWeight: '600',
+  },
+  manifestationStatFailed: {
+    color: '#F87171',
+    fontWeight: '600',
   },
   filtersContainer: {
     flexDirection: 'row',
