@@ -13,10 +13,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import GradientBackground from '@/components/GradientBackground';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { getUserProfile } from '@/utils/storage';
 import { UserProfile } from '@/types';
+import { useCardBack } from '@/hooks/useCardImages';
+import { resolveCardBackSource } from '@/utils/imageStorage';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - Spacing.lg * 2 - Spacing.md) / 2;
@@ -56,6 +59,7 @@ function getGreeting(): string {
 
 export default function HomeScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const cardBack = useCardBack();
 
   useEffect(() => {
     loadProfile();
@@ -72,6 +76,7 @@ export default function HomeScreen() {
 
   const greeting = getGreeting();
   const userName = userProfile?.fullName?.split(' ')[0] || 'Seeker';
+  const cardBackSource = cardBack.uri ? resolveCardBackSource(cardBack.uri) : null;
 
   return (
     <GradientBackground>
@@ -122,8 +127,16 @@ export default function HomeScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.featuredGradient}
               >
-                <View style={styles.featuredIconContainer}>
-                  <Ionicons name="sparkles" size={40} color={Colors.celestialGold} />
+                <View style={styles.featuredCardContainer}>
+                  {cardBackSource ? (
+                    <Image
+                      source={cardBackSource as { uri: string } | number}
+                      style={styles.featuredCardImage}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Ionicons name="sparkles" size={32} color={Colors.celestialGold} />
+                  )}
                 </View>
                 <View style={styles.featuredContent}>
                   <Text style={styles.featuredTitle}>Daily Tarot Reading</Text>
@@ -262,14 +275,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(221, 133, 216, 0.35)',
   },
-  featuredIconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  featuredCardContainer: {
+    width: 54,
+    height: 84,
+    borderRadius: 6,
     backgroundColor: 'rgba(221, 133, 216, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 133, 216, 0.3)',
+  },
+  featuredCardImage: {
+    width: '100%',
+    height: '100%',
   },
   featuredContent: {
     flex: 1,
