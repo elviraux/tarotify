@@ -65,6 +65,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="rituals"
+        options={{
+          title: 'Rituals',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="flame-outline" size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
