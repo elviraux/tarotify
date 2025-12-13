@@ -321,9 +321,7 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
 🃏 Present: ${presentCard?.card.name || ''}
 🃏 Future: ${futureCard?.card.name || ''}
 
-${dailyReading.mainExplanation}
-
-🌙 Read more on Tarotify`;
+🌙 Tarotify`;
 
     try {
       await Share.share({
