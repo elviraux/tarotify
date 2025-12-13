@@ -54,16 +54,30 @@ export default function HomeScreen() {
 
   // Ref to store pending cards during AI generation
   const pendingCardsRef = useRef<TarotCardData[] | null>(null);
+  // Ref to store userProfile for use in callbacks (avoids stale closure)
+  const userProfileRef = useRef<UserProfile | null>(null);
+
+  // Keep userProfileRef in sync
+  useEffect(() => {
+    userProfileRef.current = userProfile;
+  }, [userProfile]);
 
   // Card back hook
   const cardBack = useCardBack();
 
-  // Helper to finalize and save reading
+  // Helper to finalize and save reading - uses refs to avoid stale closures
   const finalizeReading = useCallback(async (
     selectedCards: TarotCardData[],
     aiResponse: string | null
   ) => {
-    if (!userProfile) return;
+    const profile = userProfileRef.current;
+    if (!profile) {
+      console.log('No user profile available');
+      setIsGenerating(false);
+      return;
+    }
+
+    console.log('Finalizing reading with AI response:', aiResponse ? 'received' : 'null');
 
     // Parse AI response or use default
     let interpretations = {
@@ -82,9 +96,10 @@ export default function HomeScreen() {
           jsonStr = jsonMatch[1].trim();
         }
         const parsed = JSON.parse(jsonStr);
+        console.log('Parsed AI interpretations:', parsed);
         interpretations = { ...interpretations, ...parsed };
-      } catch {
-        console.log('Failed to parse AI response, using defaults');
+      } catch (parseError) {
+        console.log('Failed to parse AI response, using defaults:', parseError);
       }
     }
 
@@ -104,7 +119,7 @@ export default function HomeScreen() {
       date: getTodayDateString(),
       cards: cardReadings,
       mainExplanation: interpretations.dailyMessage,
-      userProfile,
+      userProfile: profile,
       createdAt: new Date(),
     };
 
@@ -122,14 +137,20 @@ export default function HomeScreen() {
     setCardImages(images);
     setIsGenerating(false);
     pendingCardsRef.current = null;
-  }, [userProfile]);
+  }, []);
+
+  // Store finalizeReading in a ref so callbacks always get the latest version
+  const finalizeReadingRef = useRef(finalizeReading);
+  useEffect(() => {
+    finalizeReadingRef.current = finalizeReading;
+  }, [finalizeReading]);
 
   const { generateText } = useTextGeneration({
     onSuccess: (response) => {
-      console.log('AI interpretation generated');
+      console.log('AI interpretation generated, response length:', response?.length || 0);
       const cards = pendingCardsRef.current;
       if (cards) {
-        finalizeReading(cards, response);
+        finalizeReadingRef.current(cards, response);
       }
     },
     onError: (error) => {
@@ -137,7 +158,7 @@ export default function HomeScreen() {
       // Still finalize with defaults on error
       const cards = pendingCardsRef.current;
       if (cards) {
-        finalizeReading(cards, null);
+        finalizeReadingRef.current(cards, null);
       }
     },
   });
@@ -230,7 +251,7 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
       // Finalize with defaults on error
       const cards = pendingCardsRef.current;
       if (cards) {
-        await finalizeReading(cards, null);
+        await finalizeReadingRef.current(cards, null);
       } else {
         setIsGenerating(false);
       }
