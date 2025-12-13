@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, {
@@ -111,6 +113,8 @@ export default function OnboardingScreen() {
                 placeholder="Enter your name"
                 autoCapitalize="words"
                 autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
               />
             </View>
           </Animated.View>
@@ -154,6 +158,8 @@ export default function OnboardingScreen() {
                 }
                 placeholder="e.g., 3:45 PM"
                 autoCapitalize="none"
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
               />
             </View>
           </Animated.View>
@@ -180,6 +186,8 @@ export default function OnboardingScreen() {
                 }
                 placeholder="e.g., Los Angeles, CA"
                 autoCapitalize="words"
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
               />
             </View>
           </Animated.View>
@@ -197,29 +205,33 @@ export default function OnboardingScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <OnboardingProgress
-            currentStep={state.currentStep}
-            totalSteps={TOTAL_STEPS}
-            onBack={handleBack}
-            showBack={state.currentStep > 1}
-          />
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.keyboardDismissView}>
+              <OnboardingProgress
+                currentStep={state.currentStep}
+                totalSteps={TOTAL_STEPS}
+                onBack={handleBack}
+                showBack={state.currentStep > 1}
+              />
 
-          <View style={styles.contentContainer}>
-            {renderStepContent()}
-          </View>
+              <View style={styles.contentContainer}>
+                {renderStepContent()}
+              </View>
 
-          <Animated.View
-            entering={FadeIn.duration(500)}
-            exiting={FadeOut.duration(300)}
-            style={styles.buttonContainer}
-          >
-            <GoldButton
-              title={state.currentStep === TOTAL_STEPS ? 'Begin Reading' : 'Continue'}
-              onPress={handleNext}
-              disabled={!isStepValid()}
-              loading={isSubmitting}
-            />
-          </Animated.View>
+              <Animated.View
+                entering={FadeIn.duration(500)}
+                exiting={FadeOut.duration(300)}
+                style={styles.buttonContainer}
+              >
+                <GoldButton
+                  title={state.currentStep === TOTAL_STEPS ? 'Begin Reading' : 'Continue'}
+                  onPress={handleNext}
+                  disabled={!isStepValid()}
+                  loading={isSubmitting}
+                />
+              </Animated.View>
+            </View>
+          </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>
@@ -231,6 +243,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   keyboardView: {
+    flex: 1,
+  },
+  keyboardDismissView: {
     flex: 1,
   },
   contentContainer: {
