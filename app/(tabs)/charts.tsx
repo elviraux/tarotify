@@ -392,7 +392,6 @@ CRITICAL: Output ONLY the JSON object. No text before or after. The analysis fie
                   <CollapsibleSection
                     title="Your Cosmic Reading"
                     icon="sparkles"
-                    defaultOpen={true}
                   >
                     <FormattedText
                       text={analysis}
