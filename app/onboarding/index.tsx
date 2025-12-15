@@ -323,7 +323,7 @@ export default function OnboardingScreen() {
             style={styles.stepContent}
           >
             <Text style={styles.heading}>Begin Your{'\n'}Journey</Text>
-            <Text style={styles.subheading}>What is your full name?</Text>
+            <Text style={styles.subheading}>What should Seer call you?</Text>
             <View style={styles.inputContainer}>
               <MysticalInput
                 value={state.fullName}
