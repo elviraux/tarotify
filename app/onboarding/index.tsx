@@ -9,6 +9,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, {
@@ -16,6 +17,7 @@ import Animated, {
   FadeOut,
   FadeInRight,
   FadeOutLeft,
+  FadeInUp,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GradientBackground from '@/components/GradientBackground';
@@ -31,7 +33,14 @@ import { UserProfile, OnboardingState } from '@/types';
 
 const { height } = Dimensions.get('window');
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 6;
+
+const INTENT_OPTIONS = [
+  { id: 'love', label: 'Love & relationships', icon: '❤️' },
+  { id: 'clarity', label: 'Clarity about someone', icon: '🔮' },
+  { id: 'guidance', label: 'Personal guidance', icon: '✨' },
+  { id: 'charts', label: 'Astrology & charts', icon: '📊' },
+];
 
 export default function OnboardingScreen() {
   const [state, setState] = useState<OnboardingState>({
@@ -40,6 +49,7 @@ export default function OnboardingScreen() {
     dateOfBirth: new Date(1995, 9, 26), // Default date
     timeOfBirth: '',
     placeOfBirth: '',
+    intent: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,15 +100,23 @@ export default function OnboardingScreen() {
     setState(prev => ({ ...prev, timeOfBirth: time }));
   }, []);
 
+  const handleIntentSelect = useCallback((intentId: string) => {
+    setState(prev => ({ ...prev, intent: intentId }));
+  }, []);
+
   const isStepValid = () => {
     switch (state.currentStep) {
       case 1:
-        return state.fullName.trim().length >= 2;
+        return true; // Hook screen - always valid
       case 2:
-        return state.dateOfBirth !== null;
+        return state.intent.length > 0; // Intent must be selected
       case 3:
-        return true; // Time is optional
+        return state.fullName.trim().length >= 2;
       case 4:
+        return state.dateOfBirth !== null;
+      case 5:
+        return true; // Time is optional
+      case 6:
         return true; // Place is optional
       default:
         return false;
@@ -111,6 +129,62 @@ export default function OnboardingScreen() {
         return (
           <Animated.View
             key="step1"
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
+            style={styles.stepContent}
+          >
+            <Text style={styles.hookHeadline}>Someone is on{'\n'}your mind.</Text>
+            <Animated.Text
+              entering={FadeInUp.delay(600).duration(500)}
+              style={styles.hookSub}
+            >
+              Seer reveals what&apos;s unspoken.
+            </Animated.Text>
+          </Animated.View>
+        );
+
+      case 2:
+        return (
+          <Animated.View
+            key="step2"
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
+            style={styles.stepContent}
+          >
+            <Text style={styles.heading}>What are you{'\n'}seeking?</Text>
+            <Text style={styles.subheading}>Choose what resonates with you</Text>
+            <View style={styles.intentGrid}>
+              {INTENT_OPTIONS.map((option, index) => (
+                <Animated.View
+                  key={option.id}
+                  entering={FadeInUp.delay(400 + index * 100).duration(400)}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.intentCard,
+                      state.intent === option.id && styles.selectedIntentCard,
+                    ]}
+                    onPress={() => handleIntentSelect(option.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.intentIcon}>{option.icon}</Text>
+                    <Text style={[
+                      styles.intentLabel,
+                      state.intent === option.id && styles.selectedIntentLabel,
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
+            </View>
+          </Animated.View>
+        );
+
+      case 3:
+        return (
+          <Animated.View
+            key="step3"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -133,10 +207,10 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 2:
+      case 4:
         return (
           <Animated.View
-            key="step2"
+            key="step4"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -150,10 +224,10 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 3:
+      case 5:
         return (
           <Animated.View
-            key="step3"
+            key="step5"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -167,10 +241,10 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 4:
+      case 6:
         return (
           <Animated.View
-            key="step4"
+            key="step6"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -280,5 +354,64 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xl,
+  },
+  // Hook screen styles
+  hookHeadline: {
+    fontSize: 42,
+    fontWeight: '300',
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+    lineHeight: 52,
+    letterSpacing: 0.5,
+  },
+  hookSub: {
+    fontSize: 18,
+    color: Colors.celestialGold,
+    textAlign: 'center',
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    lineHeight: 26,
+    opacity: 0.9,
+  },
+  // Intent grid styles
+  intentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    width: '100%',
+    maxWidth: 340,
+  },
+  intentCard: {
+    width: 150,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedIntentCard: {
+    borderColor: Colors.celestialGold,
+    backgroundColor: 'rgba(221, 133, 216, 0.12)',
+  },
+  intentIcon: {
+    fontSize: 32,
+    marginBottom: Spacing.sm,
+  },
+  intentLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  selectedIntentLabel: {
+    color: Colors.celestialGold,
   },
 });
