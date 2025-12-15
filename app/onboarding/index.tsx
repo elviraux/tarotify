@@ -128,6 +128,58 @@ export default function OnboardingScreen() {
     });
   }, []);
 
+  const handleSkip = useCallback(async () => {
+    // Clear the current field and move to next step (or complete if on last step)
+    if (state.currentStep === TOTAL_STEPS) {
+      // On last step, skip means complete with empty place
+      setIsSubmitting(true);
+      try {
+        const profile: UserProfile = {
+          fullName: state.fullName,
+          dateOfBirth: state.dateOfBirth!,
+          timeOfBirth: state.timeOfBirth,
+          placeOfBirth: '',
+          createdAt: new Date(),
+        };
+        await saveUserProfile(profile);
+        await setOnboardingComplete(true);
+
+        const permissionGranted = await registerForNotifications();
+        if (permissionGranted) {
+          await scheduleDailyReminder();
+        }
+
+        router.replace('/(tabs)');
+      } catch (error) {
+        console.error('Error saving profile:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      setState(prev => {
+        const updates: Partial<OnboardingState> = { currentStep: prev.currentStep + 1 };
+
+        switch (prev.currentStep) {
+          case 6:
+            updates.fullName = '';
+            break;
+          case 7:
+            updates.dateOfBirth = null;
+            break;
+          case 8:
+            updates.timeOfBirth = '';
+            break;
+        }
+
+        return { ...prev, ...updates };
+      });
+    }
+  }, [state]);
+
+  const showSkipButton = () => {
+    return [6, 7, 8, 9].includes(state.currentStep);
+  };
+
   const isStepValid = () => {
     switch (state.currentStep) {
       case 1:
@@ -435,6 +487,15 @@ export default function OnboardingScreen() {
                   disabled={!isStepValid()}
                   loading={isSubmitting}
                 />
+                {showSkipButton() && (
+                  <TouchableOpacity
+                    style={styles.skipButton}
+                    onPress={handleSkip}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.skipButtonText}>Skip</Text>
+                  </TouchableOpacity>
+                )}
               </Animated.View>
             </View>
           </TouchableWithoutFeedback>
@@ -613,5 +674,16 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     marginTop: Spacing.xl,
     opacity: 0.9,
+  },
+  // Skip button styles
+  skipButton: {
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+  },
+  skipButtonText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '500',
   },
 });
