@@ -226,7 +226,7 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
-            <Text style={styles.hookHeadline}>Someone is on{'\n'}your mind.</Text>
+            <Text style={styles.hookHeadline}>Something is on{'\n'}your mind.</Text>
             <Animated.Text
               entering={FadeInUp.delay(600).duration(500)}
               style={styles.hookSub}
