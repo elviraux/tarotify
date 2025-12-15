@@ -1,5 +1,5 @@
 // Onboarding Flow - Entry Point
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -26,20 +26,29 @@ import MysticalInput from '@/components/MysticalInput';
 import DateWheelPicker from '@/components/DateWheelPicker';
 import TimeWheelPicker from '@/components/TimeWheelPicker';
 import GoldButton from '@/components/GoldButton';
+import TarotCard from '@/components/TarotCard';
 import { Colors, Spacing } from '@/constants/theme';
 import { saveUserProfile, setOnboardingComplete } from '@/utils/storage';
 import { registerForNotifications, scheduleDailyReminder } from '@/utils/notifications';
 import { UserProfile, OnboardingState } from '@/types';
+import { getCardById } from '@/data/tarotDeck';
 
 const { height } = Dimensions.get('window');
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 9;
 
 const INTENT_OPTIONS = [
   { id: 'love', label: 'Love & relationships', icon: '❤️' },
   { id: 'clarity', label: 'Clarity about someone', icon: '🔮' },
   { id: 'guidance', label: 'Personal guidance', icon: '✨' },
   { id: 'charts', label: 'Astrology & charts', icon: '📊' },
+];
+
+const FEELING_OPTIONS = [
+  { id: 'clarity', label: 'I want clarity' },
+  { id: 'confused', label: 'I feel confused' },
+  { id: 'stuck', label: 'I feel stuck' },
+  { id: 'hopeful', label: 'I feel hopeful' },
 ];
 
 export default function OnboardingScreen() {
@@ -50,9 +59,13 @@ export default function OnboardingScreen() {
     timeOfBirth: '',
     placeOfBirth: '',
     intent: '',
+    feelings: [],
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get The High Priestess card (id: 2)
+  const highPriestessCard = useMemo(() => getCardById(2), []);
 
   const handleNext = useCallback(async () => {
     if (state.currentStep < TOTAL_STEPS) {
@@ -104,6 +117,17 @@ export default function OnboardingScreen() {
     setState(prev => ({ ...prev, intent: intentId }));
   }, []);
 
+  const handleFeelingToggle = useCallback((feelingId: string) => {
+    setState(prev => {
+      const isSelected = prev.feelings.includes(feelingId);
+      if (isSelected) {
+        return { ...prev, feelings: prev.feelings.filter(f => f !== feelingId) };
+      } else {
+        return { ...prev, feelings: [...prev.feelings, feelingId] };
+      }
+    });
+  }, []);
+
   const isStepValid = () => {
     switch (state.currentStep) {
       case 1:
@@ -111,15 +135,32 @@ export default function OnboardingScreen() {
       case 2:
         return state.intent.length > 0; // Intent must be selected
       case 3:
-        return state.fullName.trim().length >= 2;
+        return state.feelings.length > 0; // At least one feeling selected
       case 4:
-        return state.dateOfBirth !== null;
+        return true; // Authority screen - always valid
       case 5:
-        return true; // Time is optional
+        return true; // First Signal screen - always valid
       case 6:
+        return state.fullName.trim().length >= 2;
+      case 7:
+        return state.dateOfBirth !== null;
+      case 8:
+        return true; // Time is optional
+      case 9:
         return true; // Place is optional
       default:
         return false;
+    }
+  };
+
+  const getButtonTitle = () => {
+    switch (state.currentStep) {
+      case 4:
+        return 'Show me';
+      case TOTAL_STEPS:
+        return 'Begin Reading';
+      default:
+        return 'Continue';
     }
   };
 
@@ -189,6 +230,98 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
+            <Text style={styles.heading}>When it comes to{'\n'}this connection...</Text>
+            <Text style={styles.subheading}>Select all that apply</Text>
+            <View style={styles.feelingsList}>
+              {FEELING_OPTIONS.map((option, index) => (
+                <Animated.View
+                  key={option.id}
+                  entering={FadeInUp.delay(400 + index * 80).duration(400)}
+                  style={styles.feelingButtonWrapper}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.feelingButton,
+                      state.feelings.includes(option.id) && styles.selectedFeelingButton,
+                    ]}
+                    onPress={() => handleFeelingToggle(option.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.feelingLabel,
+                      state.feelings.includes(option.id) && styles.selectedFeelingLabel,
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
+            </View>
+          </Animated.View>
+        );
+
+      case 4:
+        return (
+          <Animated.View
+            key="step4"
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
+            style={styles.stepContent}
+          >
+            <Animated.Text
+              entering={FadeInUp.delay(400).duration(500)}
+              style={styles.authorityText}
+            >
+              Seer reads emotional patterns through tarot, astrology, and intuitive insight.
+            </Animated.Text>
+            <Animated.Text
+              entering={FadeInUp.delay(600).duration(500)}
+              style={styles.authorityTextSecondary}
+            >
+              No judgment. No assumptions.{'\n'}Only what&apos;s relevant right now.
+            </Animated.Text>
+          </Animated.View>
+        );
+
+      case 5:
+        return (
+          <Animated.View
+            key="step5"
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
+            style={styles.stepContent}
+          >
+            <Text style={styles.heading}>The energy around{'\n'}this feels...</Text>
+            {highPriestessCard && (
+              <Animated.View
+                entering={FadeInUp.delay(500).duration(600)}
+                style={styles.singleCardContainer}
+              >
+                <TarotCard
+                  card={highPriestessCard}
+                  position="present"
+                  isRevealed={true}
+                  onPress={() => {}}
+                />
+              </Animated.View>
+            )}
+            <Animated.Text
+              entering={FadeInUp.delay(800).duration(500)}
+              style={styles.insightText}
+            >
+              There&apos;s distance, but not detachment.{'\n'}Something is still unfolding.
+            </Animated.Text>
+          </Animated.View>
+        );
+
+      case 6:
+        return (
+          <Animated.View
+            key="step6"
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
+            style={styles.stepContent}
+          >
             <Text style={styles.heading}>Begin Your{'\n'}Journey</Text>
             <Text style={styles.subheading}>What is your full name?</Text>
             <View style={styles.inputContainer}>
@@ -207,10 +340,10 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 4:
+      case 7:
         return (
           <Animated.View
-            key="step4"
+            key="step7"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -224,10 +357,10 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 5:
+      case 8:
         return (
           <Animated.View
-            key="step5"
+            key="step8"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -241,10 +374,10 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 6:
+      case 9:
         return (
           <Animated.View
-            key="step6"
+            key="step9"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -297,7 +430,7 @@ export default function OnboardingScreen() {
                 style={styles.buttonContainer}
               >
                 <GoldButton
-                  title={state.currentStep === TOTAL_STEPS ? 'Begin Reading' : 'Continue'}
+                  title={getButtonTitle()}
                   onPress={handleNext}
                   disabled={!isStepValid()}
                   loading={isSubmitting}
@@ -413,5 +546,72 @@ const styles = StyleSheet.create({
   },
   selectedIntentLabel: {
     color: Colors.celestialGold,
+  },
+  // Feeling buttons styles
+  feelingsList: {
+    width: '100%',
+    maxWidth: 300,
+    gap: Spacing.md,
+  },
+  feelingButtonWrapper: {
+    width: '100%',
+  },
+  feelingButton: {
+    width: '100%',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+  },
+  selectedFeelingButton: {
+    borderColor: Colors.celestialGold,
+    backgroundColor: 'rgba(221, 133, 216, 0.12)',
+  },
+  feelingLabel: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  selectedFeelingLabel: {
+    color: Colors.celestialGold,
+  },
+  // Authority screen styles
+  authorityText: {
+    fontSize: 20,
+    fontFamily: 'serif',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 32,
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.md,
+    letterSpacing: 0.3,
+  },
+  authorityTextSecondary: {
+    fontSize: 18,
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 28,
+    opacity: 0.9,
+  },
+  // First Signal (Card) screen styles
+  singleCardContainer: {
+    marginVertical: Spacing.lg,
+    alignItems: 'center',
+    transform: [{ scale: 1.3 }],
+  },
+  insightText: {
+    fontSize: 16,
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    color: Colors.celestialGold,
+    textAlign: 'center',
+    lineHeight: 26,
+    marginTop: Spacing.xl,
+    opacity: 0.9,
   },
 });

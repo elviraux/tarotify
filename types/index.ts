@@ -45,6 +45,7 @@ export interface OnboardingState {
   timeOfBirth: string;
   placeOfBirth: string;
   intent: string;
+  feelings: string[];
 }
 
 export interface StoredCardImage {
