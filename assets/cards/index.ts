@@ -53,6 +53,11 @@ export const cardAssets: CardAssetMap = {
   3: require('./card-3.png'), // The Empress
   4: require('./card-4.png'), // The Emperor
   5: require('./card-5.png'), // The Hierophant
+  6: require('./card-6.png'), // The Lovers
+  7: require('./card-7.png'), // The Chariot
+  8: require('./card-8.png'), // Strength
+  9: require('./card-9.png'), // The Hermit
+  10: require('./card-10.png'), // Wheel of Fortune
   // ... (run generate:cards:major to populate remaining Major Arcana)
 
   // === MINOR ARCANA - WANDS (22-35) ===
