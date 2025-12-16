@@ -48,14 +48,14 @@ export const cardBackAsset: ReturnType<typeof require> | null = null;
 export const cardAssets: CardAssetMap = {
   // === MAJOR ARCANA (0-21) ===
   0: require('./card-0.png'), // The Fool
-  // 1: require('./card-1.png'), // The Magician
-  // 2: require('./card-2.png'), // The High Priestess
-  // ... (run generate:cards:major to populate)
+  1: require('./card-1.png'), // The Magician
+  2: require('./card-2.png'), // The High Priestess
+  3: require('./card-3.png'), // The Empress
+  4: require('./card-4.png'), // The Emperor
+  5: require('./card-5.png'), // The Hierophant
+  // ... (run generate:cards:major to populate remaining Major Arcana)
 
   // === MINOR ARCANA - WANDS (22-35) ===
-  // 22: require('./card-22.png'), // Ace of Wands
-  // ... (run generate:cards:all to populate)
-
   // === MINOR ARCANA - CUPS (36-49) ===
   // === MINOR ARCANA - SWORDS (50-63) ===
   // === MINOR ARCANA - PENTACLES (64-77) ===
