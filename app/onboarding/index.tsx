@@ -1,5 +1,5 @@
 // Onboarding Flow - Entry Point
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,7 +10,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   TouchableOpacity,
+  ImageSourcePropType,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import Animated, {
   FadeIn,
@@ -32,16 +34,25 @@ import { saveUserProfile, setOnboardingComplete } from '@/utils/storage';
 import { registerForNotifications, scheduleDailyReminder } from '@/utils/notifications';
 import { UserProfile, OnboardingState } from '@/types';
 import { getCardById } from '@/data/tarotDeck';
+import { useCardImage } from '@/hooks/useCardImages';
 
 const { height } = Dimensions.get('window');
 
 const TOTAL_STEPS = 9;
 
+// Intent option icons - using generated mystical icons
+const INTENT_ICONS: Record<string, ImageSourcePropType> = {
+  love: require('../../assets/icons/intent-love.png'),
+  clarity: require('../../assets/icons/intent-clarity.png'),
+  guidance: require('../../assets/icons/intent-guidance.png'),
+  charts: require('../../assets/icons/intent-charts.png'),
+};
+
 const INTENT_OPTIONS = [
-  { id: 'love', label: 'Love & relationships', icon: '❤️' },
-  { id: 'clarity', label: 'Clarity about someone', icon: '🔮' },
-  { id: 'guidance', label: 'Personal guidance', icon: '✨' },
-  { id: 'charts', label: 'Astrology & charts', icon: '📊' },
+  { id: 'love', label: 'Love & relationships' },
+  { id: 'clarity', label: 'Clarity about someone' },
+  { id: 'guidance', label: 'Personal guidance' },
+  { id: 'charts', label: 'Astrology & charts' },
 ];
 
 const FEELING_OPTIONS = [
@@ -65,7 +76,19 @@ export default function OnboardingScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get The High Priestess card (id: 2)
-  const highPriestessCard = useMemo(() => getCardById(2), []);
+  const highPriestessCard = useMemo(() => getCardById(2) ?? null, []);
+
+  // Pre-load/generate The High Priestess card image
+  const {
+    imageUri: highPriestessImageUri,
+    isLoading: isCardLoading,
+    generate: generateHighPriestess,
+  } = useCardImage(highPriestessCard);
+
+  // Generate High Priestess image on mount
+  useEffect(() => {
+    generateHighPriestess();
+  }, [generateHighPriestess]);
 
   const handleNext = useCallback(async () => {
     if (state.currentStep < TOTAL_STEPS) {
@@ -260,7 +283,11 @@ export default function OnboardingScreen() {
                     onPress={() => handleIntentSelect(option.id)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.intentIcon}>{option.icon}</Text>
+                    <Image
+                      source={INTENT_ICONS[option.id]}
+                      style={styles.intentIconImage}
+                      contentFit="contain"
+                    />
                     <Text style={[
                       styles.intentLabel,
                       state.intent === option.id && styles.selectedIntentLabel,
@@ -354,6 +381,8 @@ export default function OnboardingScreen() {
                   position="present"
                   isRevealed={true}
                   onPress={() => {}}
+                  imageUri={highPriestessImageUri}
+                  isGenerating={isCardLoading}
                 />
               </Animated.View>
             )}
@@ -594,8 +623,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.celestialGold,
     backgroundColor: 'rgba(221, 133, 216, 0.12)',
   },
-  intentIcon: {
-    fontSize: 32,
+  intentIconImage: {
+    width: 40,
+    height: 40,
     marginBottom: Spacing.sm,
   },
   intentLabel: {

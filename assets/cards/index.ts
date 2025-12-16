@@ -47,7 +47,7 @@ export const cardBackAsset: ReturnType<typeof require> | null = null;
  */
 export const cardAssets: CardAssetMap = {
   // === MAJOR ARCANA (0-21) ===
-  // 0: require('./card-0.png'), // The Fool
+  0: require('./card-0.png'), // The Fool
   // 1: require('./card-1.png'), // The Magician
   // 2: require('./card-2.png'), // The High Priestess
   // ... (run generate:cards:major to populate)
