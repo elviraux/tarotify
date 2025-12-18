@@ -48,6 +48,14 @@ const INTENT_ICONS: Record<string, ImageSourcePropType> = {
   charts: require('../../assets/icons/intent-charts.png'),
 };
 
+// Onboarding illustrations for specific steps
+const ONBOARDING_IMAGES: Record<number, ImageSourcePropType> = {
+  1: require('../../assets/illustration/SEER (3).png'),
+  4: require('../../assets/illustration/8.png'),
+  6: require('../../assets/illustration/5.png'),
+  9: require('../../assets/illustration/sun.png'),
+};
+
 const INTENT_OPTIONS = [
   { id: 'love', label: 'Love & relationships' },
   { id: 'clarity', label: 'Clarity about someone' },
@@ -249,6 +257,16 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainer}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[1]}
+                style={styles.stepIllustration}
+                contentFit="contain"
+              />
+            </Animated.View>
             <Text style={styles.hookHeadline}>Something is on{'\n'}your mind.</Text>
             <Animated.Text
               entering={FadeInUp.delay(600).duration(500)}
@@ -347,6 +365,16 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainer}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[4]}
+                style={styles.stepIllustration}
+                contentFit="contain"
+              />
+            </Animated.View>
             <Animated.Text
               entering={FadeInUp.delay(400).duration(500)}
               style={styles.authorityText}
@@ -403,6 +431,16 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainerSmall}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[6]}
+                style={styles.stepIllustrationSmall}
+                contentFit="contain"
+              />
+            </Animated.View>
             <Text style={styles.heading}>Begin Your{'\n'}Journey</Text>
             <Text style={styles.subheading}>What should Seer call you?</Text>
             <View style={styles.inputContainer}>
@@ -463,6 +501,16 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainerSmall}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[9]}
+                style={styles.stepIllustrationSmall}
+                contentFit="contain"
+              />
+            </Animated.View>
             <Text style={styles.heading}>Place of{'\n'}Origin</Text>
             <Text style={styles.subheading}>Where were you born?</Text>
             <View style={styles.inputContainer}>
@@ -715,5 +763,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     fontWeight: '500',
+  },
+  // Illustration styles
+  illustrationContainer: {
+    width: 200,
+    height: 200,
+    marginBottom: Spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepIllustration: {
+    width: '100%',
+    height: '100%',
+  },
+  illustrationContainerSmall: {
+    width: 120,
+    height: 120,
+    marginBottom: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepIllustrationSmall: {
+    width: '100%',
+    height: '100%',
   },
 });
