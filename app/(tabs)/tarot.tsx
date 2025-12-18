@@ -31,9 +31,8 @@ import {
 import { formatDateLong } from '@/utils/formatDate';
 import { UserProfile, DailyReading, CardReading, TarotCard as TarotCardData } from '@/types';
 import { useTextGeneration } from '@fastshot/ai';
-import { useCardBack } from '@/hooks/useCardImages';
 import { getCardImageUri } from '@/utils/imageStorage';
-import { generateCardImage, generateCardBackImage } from '@/services/cardImageService';
+import { generateCardImage } from '@/services/cardImageService';
 
 // Reading mode type
 type ReadingMode = 'me' | 'partner';
@@ -77,9 +76,6 @@ export default function TarotScreen() {
   useEffect(() => {
     readingModeRef.current = readingMode;
   }, [readingMode]);
-
-  // Card back hook
-  const cardBack = useCardBack();
 
   // Helper to finalize and save reading - uses refs to avoid stale closures
   const finalizeReading = useCallback(async (
@@ -191,13 +187,6 @@ export default function TarotScreen() {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Generate card back if needed
-  useEffect(() => {
-    if (!cardBack.isReady && !cardBack.isLoading) {
-      generateCardBackImage();
-    }
-  }, [cardBack.isReady, cardBack.isLoading]);
 
   // Load existing card images when reading changes
   const loadExistingCardImages = useCallback(async (cards: CardReading[]) => {
@@ -514,7 +503,6 @@ Provide a mystical interpretation in this exact JSON format (no other text, no m
                       onPress={() => revealCard(index)}
                       shortDescription={cardReading.shortDescription}
                       imageUri={cardImages[cardReading.card.id] || null}
-                      cardBackUri={cardBack.uri}
                       isGenerating={generatingCardIds.has(cardReading.card.id)}
                     />
                   ))}

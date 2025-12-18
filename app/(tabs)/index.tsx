@@ -18,8 +18,7 @@ import GradientBackground from '@/components/GradientBackground';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { getUserProfile } from '@/utils/storage';
 import { UserProfile } from '@/types';
-import { useCardBack } from '@/hooks/useCardImages';
-import { resolveCardBackSource } from '@/utils/imageStorage';
+import { cardBackAsset } from '@/assets/cards';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - Spacing.lg * 2 - Spacing.md) / 2;
@@ -59,7 +58,6 @@ function getGreeting(): string {
 
 export default function HomeScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const cardBack = useCardBack();
 
   useEffect(() => {
     loadProfile();
@@ -76,7 +74,6 @@ export default function HomeScreen() {
 
   const greeting = getGreeting();
   const userName = userProfile?.fullName?.split(' ')[0] || 'Seeker';
-  const cardBackSource = cardBack.uri ? resolveCardBackSource(cardBack.uri) : null;
 
   return (
     <GradientBackground>
@@ -128,15 +125,11 @@ export default function HomeScreen() {
                 style={styles.featuredGradient}
               >
                 <View style={styles.featuredCardContainer}>
-                  {cardBackSource ? (
-                    <Image
-                      source={cardBackSource as { uri: string } | number}
-                      style={styles.featuredCardImage}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <Ionicons name="sparkles" size={32} color={Colors.celestialGold} />
-                  )}
+                  <Image
+                    source={cardBackAsset as number}
+                    style={styles.featuredCardImage}
+                    contentFit="cover"
+                  />
                 </View>
                 <View style={styles.featuredContent}>
                   <Text style={styles.featuredTitle}>Daily Tarot Reading</Text>

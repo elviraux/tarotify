@@ -15,7 +15,7 @@ export type CardAssetMap = {
 };
 
 // Card back image (bundled)
-export const cardBackAsset: ReturnType<typeof require> | null = null;
+export const cardBackAsset: ReturnType<typeof require> = require('./back.png');
 
 /**
  * Complete 78-Card Tarot Deck Assets
@@ -140,10 +140,10 @@ export const getBundledCardCount = (): number => {
 };
 
 /**
- * Check if the card back is bundled
+ * Check if the card back is bundled (always true with bundled assets)
  */
 export const hasCardBackAsset = (): boolean => {
-  return cardBackAsset !== null;
+  return true;
 };
 
 // Total cards in a standard tarot deck

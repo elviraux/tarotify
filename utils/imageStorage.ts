@@ -143,49 +143,15 @@ export const resolveCardImageSource = (cardId: number, uri: string | null): Retu
   return { uri };
 };
 
-// Check if the card back image exists (bundled or locally)
+// Check if the card back image exists (always true with bundled asset)
 export const getCardBackUri = async (): Promise<string | null> => {
-  try {
-    // Priority 1: Check bundled card back
-    if (cardBackAsset) {
-      return 'bundled:card-back';
-    }
-
-    // Priority 2: Check filesystem
-    const fileInfo = await getInfoAsync(CARD_BACK_PATH);
-    if (fileInfo.exists) {
-      return CARD_BACK_PATH;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error checking card back:', error);
-    return null;
-  }
+  // Card back is always bundled
+  return 'bundled:card-back';
 };
 
-// Resolve card back URI to actual source
-export const resolveCardBackSource = (uri: string | null): ReturnType<typeof require> | { uri: string } | null => {
-  if (!uri) return null;
-  if (uri === 'bundled:card-back') return cardBackAsset;
-  return { uri };
-};
-
-// Save the card back image
-export const saveCardBackImage = async (imageUrl: string): Promise<string | null> => {
-  try {
-    await ensureDirectoryExists();
-
-    const downloadResult = await downloadAsync(imageUrl, CARD_BACK_PATH);
-
-    if (downloadResult.status === 200) {
-      return CARD_BACK_PATH;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Error saving card back image:', error);
-    return null;
-  }
+// Resolve card back URI to actual source (always returns bundled asset)
+export const resolveCardBackSource = (): ReturnType<typeof require> => {
+  return cardBackAsset;
 };
 
 // Get all available card IDs (bundled + filesystem generated)

@@ -4,15 +4,11 @@ import { TarotCard } from '@/types';
 import {
   downloadAndSaveImage,
   getCardImageUri,
-  getCardBackUri,
-  saveCardBackImage,
   getGeneratedCardIds,
 } from '@/utils/imageStorage';
 
 // Style constants for consistent card artwork
 const CARD_ART_STYLE = 'Tarot card art, mystical illustration, gold ink line art on dark midnight blue paper, ethereal glow, intricate details, sacred geometry elements, 8k resolution, professional tarot deck quality';
-
-const CARD_BACK_STYLE = 'Intricate celestial pattern, gold foil ornate design on midnight blue texture, symmetric mandala, crescent moon and stars, sacred geometry, tarot card back design, luxurious mystical, seamless pattern, 8k resolution';
 
 // Generate the prompt for a specific tarot card
 const generateCardPrompt = (card: TarotCard): string => {
@@ -67,46 +63,6 @@ export const generateCardImage = async (
     throw new Error('Failed to generate image');
   } catch (error) {
     console.error(`Error generating card image for ${card.name}:`, error);
-    callbacks?.onError?.(error as Error);
-    return null;
-  }
-};
-
-// Generate the card back image
-export const generateCardBackImage = async (
-  callbacks?: GenerationCallbacks
-): Promise<string | null> => {
-  try {
-    // Check if already generated
-    const existingUri = await getCardBackUri();
-    if (existingUri) {
-      callbacks?.onComplete?.(existingUri);
-      return existingUri;
-    }
-
-    callbacks?.onStart?.();
-
-    // Generate image using Newell AI
-    const result = await generateImage({
-      prompt: CARD_BACK_STYLE,
-      width: 512,
-      height: 768,
-      numOutputs: 1,
-    });
-
-    if (result?.images?.[0]) {
-      // Download and save locally
-      const localUri = await saveCardBackImage(result.images[0]);
-
-      if (localUri) {
-        callbacks?.onComplete?.(localUri);
-        return localUri;
-      }
-    }
-
-    throw new Error('Failed to generate card back image');
-  } catch (error) {
-    console.error('Error generating card back image:', error);
     callbacks?.onError?.(error as Error);
     return null;
   }

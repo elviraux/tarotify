@@ -1,5 +1,5 @@
 // Tarot Card Component with 3D Flip Animation
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -33,17 +33,8 @@ interface Props {
   onPress: () => void;
   shortDescription?: string;
   imageUri?: string | null;
-  cardBackUri?: string | null;
   isGenerating?: boolean;
 }
-
-// Generate stable star positions
-const generateStarPositions = () => {
-  return [...Array(5)].map((_, i) => ({
-    left: (i * 17 + 5) % 60 - 30,
-    top: (i * 23 + 10) % 60 - 30,
-  }));
-};
 
 export default function TarotCard({
   card,
@@ -52,11 +43,9 @@ export default function TarotCard({
   onPress,
   shortDescription,
   imageUri,
-  cardBackUri,
   isGenerating = false,
 }: Props) {
   const flipProgress = useSharedValue(isRevealed ? 1 : 0);
-  const starPositions = useMemo(() => generateStarPositions(), []);
 
   React.useEffect(() => {
     flipProgress.value = withTiming(isRevealed ? 1 : 0, {
@@ -109,69 +98,14 @@ export default function TarotCard({
     return { uri };
   };
 
-  // Render card back content - either generated image or default design
+  // Render card back content - always use the bundled asset
   const renderCardBackContent = () => {
-    // Check for bundled card back first
-    if (cardBackAsset) {
-      return (
-        <Image
-          source={cardBackAsset as ImageSource}
-          style={styles.cardBackImage}
-          contentFit="cover"
-        />
-      );
-    }
-
-    if (cardBackUri) {
-      const source = resolveImageSource(cardBackUri);
-      if (source) {
-        return (
-          <Image
-            source={source}
-            style={styles.cardBackImage}
-            contentFit="cover"
-          />
-        );
-      }
-    }
-
-    // Default CSS-based card back design
     return (
-      <LinearGradient
-        colors={['#1A1F2E', '#0B0F19', '#1A1F2E']}
-        style={styles.cardBackGradient}
-      >
-        <View style={styles.cardBackBorder}>
-          <View style={styles.cardBackInner}>
-            {/* Moon symbol */}
-            <View style={styles.moonContainer}>
-              <View style={styles.moon}>
-                <View style={styles.moonCrescent} />
-              </View>
-              <View style={styles.starsSmall}>
-                {starPositions.map((pos, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.smallStar,
-                      {
-                        left: pos.left,
-                        top: pos.top,
-                      },
-                    ]}
-                  />
-                ))}
-              </View>
-            </View>
-            {/* Decorative pattern */}
-            <View style={styles.decorativePattern}>
-              <View style={styles.patternLine} />
-              <View style={styles.patternDiamond} />
-              <View style={styles.patternLine} />
-            </View>
-          </View>
-        </View>
-      </LinearGradient>
+      <Image
+        source={cardBackAsset as ImageSource}
+        style={styles.cardBackImage}
+        contentFit="cover"
+      />
     );
   };
 
@@ -285,81 +219,6 @@ const styles = StyleSheet.create({
   cardBackImage: {
     flex: 1,
     borderRadius: BorderRadius.lg,
-  },
-  cardBackGradient: {
-    flex: 1,
-    borderRadius: BorderRadius.lg,
-    padding: 3,
-  },
-  cardBackBorder: {
-    flex: 1,
-    borderRadius: BorderRadius.lg - 2,
-    borderWidth: 1,
-    borderColor: 'rgba(221, 133, 216, 0.4)',
-    padding: 4,
-  },
-  cardBackInner: {
-    flex: 1,
-    borderRadius: BorderRadius.lg - 4,
-    backgroundColor: 'rgba(11, 15, 25, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moonContainer: {
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.md,
-  },
-  moon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.celestialGold,
-    opacity: 0.9,
-    position: 'relative',
-  },
-  moonCrescent: {
-    position: 'absolute',
-    width: 28,
-    height: 36,
-    borderRadius: 14,
-    backgroundColor: '#0B0F19',
-    right: -6,
-    top: 0,
-  },
-  starsSmall: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-  },
-  smallStar: {
-    position: 'absolute',
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: Colors.celestialGold,
-    opacity: 0.6,
-  },
-  decorativePattern: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  patternLine: {
-    width: 15,
-    height: 1,
-    backgroundColor: Colors.celestialGold,
-    opacity: 0.5,
-  },
-  patternDiamond: {
-    width: 8,
-    height: 8,
-    backgroundColor: Colors.celestialGold,
-    transform: [{ rotate: '45deg' }],
-    marginHorizontal: 6,
-    opacity: 0.7,
   },
   cardFrontGradient: {
     flex: 1,
