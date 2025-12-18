@@ -38,7 +38,7 @@ import { useCardImage } from '@/hooks/useCardImages';
 
 const { height } = Dimensions.get('window');
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 
 // Intent option icons - using generated mystical icons
 const INTENT_ICONS: Record<string, ImageSourcePropType> = {
@@ -50,11 +50,48 @@ const INTENT_ICONS: Record<string, ImageSourcePropType> = {
 
 // Onboarding illustrations for specific steps
 const ONBOARDING_IMAGES: Record<number, ImageSourcePropType> = {
-  1: require('../../assets/illustration/SEER (3).png'),
-  4: require('../../assets/illustration/8.png'),
-  6: require('../../assets/illustration/5.png'),
-  9: require('../../assets/illustration/sun.png'),
+  1: require('../../assets/illustration/8.png'),
+  2: require('../../assets/illustration/SEER (3).png'),
+  5: require('../../assets/illustration/8.png'),
+  7: require('../../assets/illustration/5.png'),
+  10: require('../../assets/illustration/sun.png'),
 };
+
+// Welcome screen typewriter text
+const WELCOME_TEXT = "The cards have been waiting. The stars have aligned. Your journey into deeper knowing begins now.";
+
+// TypewriterText Component
+interface TypewriterTextProps {
+  text: string;
+  onComplete?: () => void;
+  speed?: number;
+  style?: object;
+}
+
+function TypewriterText({ text, onComplete, speed = 40, style }: TypewriterTextProps) {
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timer = setTimeout(() => {
+        setDisplayedText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, speed);
+      return () => clearTimeout(timer);
+    } else if (onComplete) {
+      onComplete();
+    }
+  }, [currentIndex, text, speed, onComplete]);
+
+  // Reset when text changes
+  useEffect(() => {
+    setDisplayedText('');
+    setCurrentIndex(0);
+  }, [text]);
+
+  return <Text style={style}>{displayedText}</Text>;
+}
 
 const INTENT_OPTIONS = [
   { id: 'love', label: 'Love & relationships' },
@@ -82,6 +119,16 @@ export default function OnboardingScreen() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+
+  // Reset typing state when step changes
+  useEffect(() => {
+    if (state.currentStep === 1) {
+      setIsTypingComplete(false);
+    } else {
+      setIsTypingComplete(true);
+    }
+  }, [state.currentStep]);
 
   // Get The High Priestess card (id: 2)
   const highPriestessCard = useMemo(() => getCardById(2) ?? null, []);
@@ -191,13 +238,13 @@ export default function OnboardingScreen() {
         const updates: Partial<OnboardingState> = { currentStep: prev.currentStep + 1 };
 
         switch (prev.currentStep) {
-          case 6:
+          case 7:
             updates.fullName = '';
             break;
-          case 7:
+          case 8:
             updates.dateOfBirth = null;
             break;
-          case 8:
+          case 9:
             updates.timeOfBirth = '';
             break;
         }
@@ -208,28 +255,30 @@ export default function OnboardingScreen() {
   }, [state]);
 
   const showSkipButton = () => {
-    return [6, 7, 8, 9].includes(state.currentStep);
+    return [7, 8, 9, 10].includes(state.currentStep);
   };
 
   const isStepValid = () => {
     switch (state.currentStep) {
       case 1:
-        return true; // Hook screen - always valid
+        return isTypingComplete; // Welcome screen - valid after typing completes
       case 2:
-        return state.intent.length > 0; // Intent must be selected
+        return true; // Hook screen - always valid
       case 3:
-        return state.feelings.length > 0; // At least one feeling selected
+        return state.intent.length > 0; // Intent must be selected
       case 4:
-        return true; // Authority screen - always valid
+        return state.feelings.length > 0; // At least one feeling selected
       case 5:
-        return true; // First Signal screen - always valid
+        return true; // Authority screen - always valid
       case 6:
-        return state.fullName.trim().length >= 2;
+        return true; // First Signal screen - always valid
       case 7:
-        return state.dateOfBirth !== null;
+        return state.fullName.trim().length >= 2;
       case 8:
-        return true; // Time is optional
+        return state.dateOfBirth !== null;
       case 9:
+        return true; // Time is optional
+      case 10:
         return true; // Place is optional
       default:
         return false;
@@ -238,7 +287,9 @@ export default function OnboardingScreen() {
 
   const getButtonTitle = () => {
     switch (state.currentStep) {
-      case 4:
+      case 1:
+        return 'Step inside';
+      case 5:
         return 'Show me';
       case TOTAL_STEPS:
         return 'Begin Reading';
@@ -249,6 +300,7 @@ export default function OnboardingScreen() {
 
   const renderStepContent = () => {
     switch (state.currentStep) {
+      // Step 1: Welcome Screen (NEW)
       case 1:
         return (
           <Animated.View
@@ -267,6 +319,51 @@ export default function OnboardingScreen() {
                 contentFit="contain"
               />
             </Animated.View>
+            <Animated.Text
+              entering={FadeInUp.delay(400).duration(500)}
+              style={styles.welcomeTitle}
+            >
+              Welcome to Seer
+            </Animated.Text>
+            <Animated.Text
+              entering={FadeInUp.delay(600).duration(500)}
+              style={styles.welcomeSubtitle}
+            >
+              An oracle for those who seek.
+            </Animated.Text>
+            <Animated.View
+              entering={FadeInUp.delay(800).duration(500)}
+              style={styles.typewriterContainer}
+            >
+              <TypewriterText
+                text={WELCOME_TEXT}
+                speed={35}
+                style={styles.typewriterText}
+                onComplete={() => setIsTypingComplete(true)}
+              />
+            </Animated.View>
+          </Animated.View>
+        );
+
+      // Step 2: Hook Screen (was Step 1)
+      case 2:
+        return (
+          <Animated.View
+            key="step2"
+            entering={FadeInRight.delay(300).duration(300)}
+            exiting={FadeOutLeft.duration(300)}
+            style={styles.stepContent}
+          >
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainer}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[2]}
+                style={styles.stepIllustration}
+                contentFit="contain"
+              />
+            </Animated.View>
             <Text style={styles.hookHeadline}>Something is on{'\n'}your mind.</Text>
             <Animated.Text
               entering={FadeInUp.delay(600).duration(500)}
@@ -277,10 +374,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 2:
+      // Step 3: Intent Selection (was Step 2)
+      case 3:
         return (
           <Animated.View
-            key="step2"
+            key="step3"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -319,10 +417,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 3:
+      // Step 4: Feelings Selection (was Step 3)
+      case 4:
         return (
           <Animated.View
-            key="step3"
+            key="step4"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -357,10 +456,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 4:
+      // Step 5: Authority Screen (was Step 4)
+      case 5:
         return (
           <Animated.View
-            key="step4"
+            key="step5"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -370,7 +470,7 @@ export default function OnboardingScreen() {
               style={styles.illustrationContainer}
             >
               <Image
-                source={ONBOARDING_IMAGES[4]}
+                source={ONBOARDING_IMAGES[5]}
                 style={styles.stepIllustration}
                 contentFit="contain"
               />
@@ -390,10 +490,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 5:
+      // Step 6: First Signal Card (was Step 5)
+      case 6:
         return (
           <Animated.View
-            key="step5"
+            key="step6"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -423,10 +524,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 6:
+      // Step 7: Name Input (was Step 6)
+      case 7:
         return (
           <Animated.View
-            key="step6"
+            key="step7"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -436,7 +538,7 @@ export default function OnboardingScreen() {
               style={styles.illustrationContainerSmall}
             >
               <Image
-                source={ONBOARDING_IMAGES[6]}
+                source={ONBOARDING_IMAGES[7]}
                 style={styles.stepIllustrationSmall}
                 contentFit="contain"
               />
@@ -459,10 +561,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 7:
+      // Step 8: Date Picker (was Step 7)
+      case 8:
         return (
           <Animated.View
-            key="step7"
+            key="step8"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -476,10 +579,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 8:
+      // Step 9: Time Picker (was Step 8)
+      case 9:
         return (
           <Animated.View
-            key="step8"
+            key="step9"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -493,10 +597,11 @@ export default function OnboardingScreen() {
           </Animated.View>
         );
 
-      case 9:
+      // Step 10: Place of Birth (was Step 9)
+      case 10:
         return (
           <Animated.View
-            key="step9"
+            key="step10"
             entering={FadeInRight.delay(300).duration(300)}
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
@@ -506,7 +611,7 @@ export default function OnboardingScreen() {
               style={styles.illustrationContainerSmall}
             >
               <Image
-                source={ONBOARDING_IMAGES[9]}
+                source={ONBOARDING_IMAGES[10]}
                 style={styles.stepIllustrationSmall}
                 contentFit="contain"
               />
@@ -646,6 +751,39 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     lineHeight: 26,
     opacity: 0.9,
+  },
+  // Welcome screen styles
+  welcomeTitle: {
+    fontSize: 38,
+    fontWeight: '300',
+    fontFamily: 'serif',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+    lineHeight: 46,
+    letterSpacing: 0.5,
+  },
+  welcomeSubtitle: {
+    fontSize: 18,
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    color: Colors.celestialGold,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+    lineHeight: 26,
+    opacity: 0.9,
+  },
+  typewriterContainer: {
+    paddingHorizontal: Spacing.md,
+    minHeight: 80,
+  },
+  typewriterText: {
+    fontSize: 16,
+    fontFamily: 'serif',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 26,
+    letterSpacing: 0.2,
   },
   // Intent grid styles
   intentGrid: {
