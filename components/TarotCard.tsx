@@ -8,7 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { Image } from 'expo-image';
+import { Image, ImageSource } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { TarotCard as TarotCardType } from '@/types';
 import { hapticLight } from '@/utils/haptics';
+import { getBundledAsset, cardBackAsset } from '@/assets/cards';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 80) / 3;
@@ -92,16 +93,46 @@ export default function TarotCard({
     future: 'Future',
   };
 
+  // Resolve image source - handles both bundled assets and URI strings
+  const resolveImageSource = (uri: string | null | undefined, cardId?: number): ImageSource | null => {
+    if (!uri) return null;
+
+    // Handle bundled assets (format: "bundled:{cardId}")
+    if (uri.startsWith('bundled:')) {
+      const id = cardId ?? parseInt(uri.split(':')[1], 10);
+      const bundledAsset = getBundledAsset(id);
+      // Cast to ImageSource since require() returns a valid image source
+      return bundledAsset as ImageSource | null;
+    }
+
+    // Handle regular URIs
+    return { uri };
+  };
+
   // Render card back content - either generated image or default design
   const renderCardBackContent = () => {
-    if (cardBackUri) {
+    // Check for bundled card back first
+    if (cardBackAsset) {
       return (
         <Image
-          source={{ uri: cardBackUri }}
+          source={cardBackAsset as ImageSource}
           style={styles.cardBackImage}
           contentFit="cover"
         />
       );
+    }
+
+    if (cardBackUri) {
+      const source = resolveImageSource(cardBackUri);
+      if (source) {
+        return (
+          <Image
+            source={source}
+            style={styles.cardBackImage}
+            contentFit="cover"
+          />
+        );
+      }
     }
 
     // Default CSS-based card back design
@@ -155,10 +186,13 @@ export default function TarotCard({
       );
     }
 
-    if (imageUri) {
+    // Resolve image source (handles bundled assets and URIs)
+    const source = resolveImageSource(imageUri, card.id);
+
+    if (source) {
       return (
         <Image
-          source={{ uri: imageUri }}
+          source={source}
           style={styles.cardImage}
           contentFit="cover"
           transition={300}
