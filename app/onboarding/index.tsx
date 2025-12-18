@@ -120,11 +120,13 @@ export default function OnboardingScreen() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const [introPhase, setIntroPhase] = useState(0); // 0=title, 1=subtitle, 2=body, 3=complete
 
   // Reset typing state when step changes
   useEffect(() => {
     if (state.currentStep === 1) {
       setIsTypingComplete(false);
+      setIntroPhase(0);
     } else {
       setIsTypingComplete(true);
     }
@@ -300,7 +302,7 @@ export default function OnboardingScreen() {
 
   const renderStepContent = () => {
     switch (state.currentStep) {
-      // Step 1: Welcome Screen (NEW)
+      // Step 1: Welcome Screen (NEW) - Sequential typewriter effect
       case 1:
         return (
           <Animated.View
@@ -319,29 +321,46 @@ export default function OnboardingScreen() {
                 contentFit="contain"
               />
             </Animated.View>
-            <Animated.Text
-              entering={FadeInUp.delay(400).duration(500)}
-              style={styles.welcomeTitle}
-            >
-              Welcome to Seer
-            </Animated.Text>
-            <Animated.Text
-              entering={FadeInUp.delay(600).duration(500)}
-              style={styles.welcomeSubtitle}
-            >
-              An oracle for those who seek.
-            </Animated.Text>
-            <Animated.View
-              entering={FadeInUp.delay(800).duration(500)}
-              style={styles.typewriterContainer}
-            >
+            {/* Title - types first */}
+            <View style={styles.welcomeTitleContainer}>
               <TypewriterText
-                text={WELCOME_TEXT}
-                speed={35}
-                style={styles.typewriterText}
-                onComplete={() => setIsTypingComplete(true)}
+                text="Welcome to Seer"
+                speed={60}
+                style={styles.welcomeTitle}
+                onComplete={() => setIntroPhase(1)}
               />
-            </Animated.View>
+            </View>
+            {/* Subtitle - types after title completes */}
+            {introPhase >= 1 && (
+              <Animated.View
+                entering={FadeIn.duration(300)}
+                style={styles.welcomeSubtitleContainer}
+              >
+                <TypewriterText
+                  text="An oracle for those who seek."
+                  speed={45}
+                  style={styles.welcomeSubtitle}
+                  onComplete={() => setIntroPhase(2)}
+                />
+              </Animated.View>
+            )}
+            {/* Body - types after subtitle completes */}
+            {introPhase >= 2 && (
+              <Animated.View
+                entering={FadeIn.duration(300)}
+                style={styles.typewriterContainer}
+              >
+                <TypewriterText
+                  text={WELCOME_TEXT}
+                  speed={30}
+                  style={styles.typewriterText}
+                  onComplete={() => {
+                    setIntroPhase(3);
+                    setIsTypingComplete(true);
+                  }}
+                />
+              </Animated.View>
+            )}
           </Animated.View>
         );
 
@@ -753,15 +772,24 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   // Welcome screen styles
+  welcomeTitleContainer: {
+    minHeight: 50,
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
+  },
   welcomeTitle: {
     fontSize: 38,
     fontWeight: '300',
     fontFamily: 'serif',
     color: Colors.textPrimary,
     textAlign: 'center',
-    marginBottom: Spacing.sm,
     lineHeight: 46,
     letterSpacing: 0.5,
+  },
+  welcomeSubtitleContainer: {
+    minHeight: 30,
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
   },
   welcomeSubtitle: {
     fontSize: 18,
@@ -769,13 +797,12 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: Colors.celestialGold,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
     lineHeight: 26,
     opacity: 0.9,
   },
   typewriterContainer: {
     paddingHorizontal: Spacing.md,
-    minHeight: 80,
+    minHeight: 100,
   },
   typewriterText: {
     fontSize: 16,
