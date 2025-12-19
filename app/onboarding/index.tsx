@@ -325,7 +325,7 @@ export default function OnboardingScreen() {
             <View style={styles.welcomeTitleContainer}>
               <TypewriterText
                 text="Welcome to Seer"
-                speed={60}
+                speed={30}
                 style={styles.welcomeTitle}
                 onComplete={() => setIntroPhase(1)}
               />
@@ -338,7 +338,7 @@ export default function OnboardingScreen() {
               >
                 <TypewriterText
                   text="An oracle for those who seek."
-                  speed={45}
+                  speed={30}
                   style={styles.welcomeSubtitle}
                   onComplete={() => setIntroPhase(2)}
                 />
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
     lineHeight: 44,
   },
   subheading: {
-    fontSize: 16,
+    fontSize: 24,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.xl,
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   hookSub: {
-    fontSize: 18,
+    fontSize: 24,
     color: Colors.celestialGold,
     textAlign: 'center',
     fontFamily: Fonts.heading,
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   welcomeSubtitle: {
-    fontSize: 18,
+    fontSize: 36,
     fontFamily: Fonts.heading,
     fontStyle: 'italic',
     color: Colors.celestialGold,
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   typewriterText: {
-    fontSize: 16,
+    fontSize: 30,
     fontFamily: Fonts.heading,
     color: Colors.textSecondary,
     textAlign: 'center',
