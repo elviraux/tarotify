@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import GradientBackground from '@/components/GradientBackground';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Fonts } from '@/constants/theme';
 import { clearAllData, setOnboardingComplete } from '@/utils/storage';
 import {
   registerForNotifications,
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
   },
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
     color: Colors.moonlightGray,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
   },
   footerSubtext: {

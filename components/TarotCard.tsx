@@ -17,7 +17,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { Colors, BorderRadius, Shadows, Spacing, Fonts } from '@/constants/theme';
 import { TarotCard as TarotCardType } from '@/types';
 import { hapticLight } from '@/utils/haptics';
 import { getBundledAsset, cardBackAsset } from '@/assets/cards';
@@ -263,14 +263,14 @@ const styles = StyleSheet.create({
   cardName: {
     color: Colors.celestialGold,
     fontSize: 10,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     textAlign: 'center',
     fontWeight: '600',
   },
   positionLabel: {
     color: Colors.textSecondary,
     fontSize: 12,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     marginTop: Spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,

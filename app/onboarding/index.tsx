@@ -29,7 +29,7 @@ import DateWheelPicker from '@/components/DateWheelPicker';
 import TimeWheelPicker from '@/components/TimeWheelPicker';
 import GoldButton from '@/components/GoldButton';
 import TarotCard from '@/components/TarotCard';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing, Fonts } from '@/constants/theme';
 import { saveUserProfile, setOnboardingComplete } from '@/utils/storage';
 import { registerForNotifications, scheduleDailyReminder } from '@/utils/notifications';
 import { UserProfile, OnboardingState } from '@/types';
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 36,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: Spacing.md,
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
   hookHeadline: {
     fontSize: 42,
     fontWeight: '300',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.celestialGold,
     textAlign: 'center',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
     lineHeight: 26,
     opacity: 0.9,
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 38,
     fontWeight: '300',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 46,
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
   },
   welcomeSubtitle: {
     fontSize: 18,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
     color: Colors.celestialGold,
     textAlign: 'center',
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
   },
   typewriterText: {
     fontSize: 16,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 26,
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   // Authority screen styles
   authorityText: {
     fontSize: 20,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 32,
@@ -895,7 +895,7 @@ const styles = StyleSheet.create({
   },
   authorityTextSecondary: {
     fontSize: 18,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
     color: Colors.textSecondary,
     textAlign: 'center',
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
   },
   insightText: {
     fontSize: 16,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
     color: Colors.celestialGold,
     textAlign: 'center',

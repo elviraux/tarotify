@@ -37,10 +37,10 @@ export const Colors = {
 };
 
 export const Fonts = {
-  // Using system fonts initially, can be replaced with custom fonts
-  heading: 'serif', // Will use Playfair Display when loaded
+  // Custom fonts loaded in _layout.tsx
+  heading: 'Achafexp', // Mystical heading font
   body: 'System',
-  accent: 'serif',
+  accent: 'Achafexp',
 };
 
 export const Spacing = {

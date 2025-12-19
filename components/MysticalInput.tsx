@@ -12,7 +12,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
-import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { Colors, BorderRadius, Spacing, Fonts } from '@/constants/theme';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: 14,
     marginBottom: Spacing.xs,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   inputWrapper: {
     borderWidth: 1,

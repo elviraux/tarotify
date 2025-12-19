@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Fonts } from '@/constants/theme';
 import { hapticSelection } from '@/utils/haptics';
 
 interface Props {
@@ -292,13 +292,13 @@ const styles = StyleSheet.create({
   hourMarkerText: {
     color: Colors.celestialGold,
     fontSize: 12,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     opacity: 0.7,
   },
   timeText: {
     color: Colors.textPrimary,
     fontSize: 24,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontWeight: '500',
     textAlign: 'center',
   },

@@ -17,7 +17,7 @@ import GradientBackground from '@/components/GradientBackground';
 import TarotCard from '@/components/TarotCard';
 import GoldButton from '@/components/GoldButton';
 import FormattedText from '@/components/FormattedText';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Fonts } from '@/constants/theme';
 import { getRandomCards } from '@/data/tarotDeck';
 import {
   getUserProfile,
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: Colors.textSecondary,
     fontSize: 16,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     marginTop: Spacing.md,
   },
   scrollView: {
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 36,
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
     textAlign: 'center',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     lineHeight: 28,
     marginBottom: Spacing.xl,
   },
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
   explanationTitle: {
     fontSize: 17,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     textAlign: 'center',
     marginBottom: Spacing.lg,

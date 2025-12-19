@@ -1,7 +1,7 @@
 // FormattedText - Simple markdown-like text renderer
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing, Fonts } from '@/constants/theme';
 
 interface FormattedTextProps {
   text: string;
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     color: Colors.celestialGold,
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   heading3: {
     fontSize: 16,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     color: Colors.celestialGold,
     marginTop: Spacing.md,
     marginBottom: Spacing.xs,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   paragraph: {
     fontSize: 15,

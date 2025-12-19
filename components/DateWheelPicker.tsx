@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Fonts } from '@/constants/theme';
 import { formatDateLong } from '@/utils/formatDate';
 import { hapticSelection } from '@/utils/haptics';
 
@@ -276,13 +276,13 @@ const styles = StyleSheet.create({
   hourText: {
     color: Colors.celestialGold,
     fontSize: 12,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     opacity: 0.7,
   },
   dateText: {
     color: Colors.textPrimary,
     fontSize: 18,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontWeight: '500',
     textAlign: 'center',
   },

@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInUp, FadeOut, FadeInDown } from 'react-native-reanimated';
 import GradientBackground from '@/components/GradientBackground';
 import GoldButton from '@/components/GoldButton';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows, Fonts } from '@/constants/theme';
 import { tarotDeck, getMajorArcana, getMinorArcana } from '@/data/tarotDeck';
 import { TarotCard } from '@/types';
 import { getCardImageUri, getGeneratedCardIds, resolveCardImageSource } from '@/utils/imageStorage';
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: Colors.textSecondary,
     fontSize: 16,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     marginTop: Spacing.md,
   },
   header: {
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
   },
   subtitle: {
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.celestialGold,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   manifestationSubtitle: {
     fontSize: 11,
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
   manifestationCardName: {
     fontSize: 13,
     color: Colors.textPrimary,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
     marginTop: Spacing.sm,
     marginBottom: Spacing.sm,
@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: Colors.celestialGold,
     textAlign: 'center',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontWeight: '500',
   },
   emptyContainer: {
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     lineHeight: 24,
   },
   // Modal styles
@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
   modalPlaceholderText: {
     color: Colors.textSecondary,
     fontSize: 14,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     textAlign: 'center',
     paddingHorizontal: Spacing.lg,
   },
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
   modalCardName: {
     fontSize: 24,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     textAlign: 'center',
     marginBottom: Spacing.xs,

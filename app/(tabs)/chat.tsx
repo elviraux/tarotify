@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTextGeneration } from '@fastshot/ai';
 import GradientBackground from '@/components/GradientBackground';
 import FormattedText from '@/components/FormattedText';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Fonts } from '@/constants/theme';
 import { getUserProfile, getDailyReading, getTodayDateString } from '@/utils/storage';
 import { UserProfile, DailyReading } from '@/types';
 import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
   },
   headerSubtitleContainer: {
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   },
   aiText: {
     color: Colors.textPrimary,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   typingContainer: {
     flexDirection: 'row',

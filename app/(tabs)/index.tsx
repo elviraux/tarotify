@@ -15,7 +15,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import GradientBackground from '@/components/GradientBackground';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows, Fonts } from '@/constants/theme';
 import { getUserProfile } from '@/utils/storage';
 import { UserProfile } from '@/types';
 import { cardBackAsset } from '@/assets/cards';
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: Colors.celestialGold,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   heroSection: {
     paddingHorizontal: Spacing.lg,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 32,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     lineHeight: 42,
   },
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   featuredTitle: {
     fontSize: 20,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     marginBottom: 4,
   },
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: Colors.moonlightGray,
     textAlign: 'center',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     lineHeight: 24,
   },
 });

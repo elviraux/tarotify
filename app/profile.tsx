@@ -22,7 +22,7 @@ import GradientBackground from '@/components/GradientBackground';
 import MysticalInput from '@/components/MysticalInput';
 import DateWheelPicker from '@/components/DateWheelPicker';
 import TimeWheelPicker from '@/components/TimeWheelPicker';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows, Fonts } from '@/constants/theme';
 import { getUserProfile, saveUserProfile } from '@/utils/storage';
 import { getGenerationStats } from '@/utils/imageStorage';
 import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
   },
@@ -584,13 +584,13 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
   },
   userName: {
     fontSize: 24,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
   deckTitle: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     marginBottom: 2,
   },
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: Colors.textSecondary,
     textAlign: 'center',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     lineHeight: 24,
   },
 });

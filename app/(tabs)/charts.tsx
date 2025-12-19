@@ -20,7 +20,7 @@ import { router } from 'expo-router';
 import GradientBackground from '@/components/GradientBackground';
 import GoldButton from '@/components/GoldButton';
 import FormattedText from '@/components/FormattedText';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows, Fonts } from '@/constants/theme';
 import { getUserProfile, getChartAnalysis, saveChartAnalysis } from '@/utils/storage';
 import { UserProfile } from '@/types';
 import { formatDateLong, getZodiacSign } from '@/utils/formatDate';
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.textPrimary,
   },
   headerSubtitle: {
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.celestialGold,
     marginBottom: Spacing.md,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     letterSpacing: 0.5,
   },
   astroCards: {
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.celestialGold,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   numLabel: {
     fontSize: 12,
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.lg,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     fontStyle: 'italic',
   },
   analysisWrapper: {
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.celestialGold,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   collapsibleContent: {
     paddingHorizontal: Spacing.lg,
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.celestialGold,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   regenerateButton: {
     flexDirection: 'row',

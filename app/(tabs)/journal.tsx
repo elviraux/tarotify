@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
 import GradientBackground from '@/components/GradientBackground';
 import FormattedText from '@/components/FormattedText';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows, Fonts } from '@/constants/theme';
 import { getReadingHistory } from '@/utils/storage';
 import { getCardImageUri, resolveCardImageSource } from '@/utils/imageStorage';
 import { formatDateLong } from '@/utils/formatDate';
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: Colors.textSecondary,
     fontSize: 16,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     marginTop: Spacing.md,
   },
   header: {
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     textAlign: 'center',
   },
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   historyDate: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     marginBottom: Spacing.sm,
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     marginTop: Spacing.lg,
     textAlign: 'center',
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     textAlign: 'center',
   },
@@ -538,14 +538,14 @@ const styles = StyleSheet.create({
   detailCardName: {
     color: Colors.celestialGold,
     fontSize: 10,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     textAlign: 'center',
     fontWeight: '600',
   },
   detailPositionLabel: {
     color: Colors.textSecondary,
     fontSize: 12,
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     marginTop: Spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   explanationTitle: {
     fontSize: 17,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
     color: Colors.celestialGold,
     textAlign: 'center',
     marginBottom: Spacing.lg,

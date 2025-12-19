@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { Colors, BorderRadius, Spacing, Fonts } from '@/constants/theme';
 import { hapticMedium } from '@/utils/haptics';
 
 interface Props {
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     color: Colors.deepMidnightBlue,
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   outlineButton: {
     paddingVertical: Spacing.md,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     color: Colors.celestialGold,
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
+    fontFamily: Fonts.heading,
   },
   disabled: {
     opacity: 0.5,
