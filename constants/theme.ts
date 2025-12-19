@@ -41,6 +41,7 @@ export const Fonts = {
   heading: 'Achafexp', // Mystical heading font
   body: 'System',
   accent: 'Achafexp',
+  mono: 'SpaceMono-Regular', // Technical/modern font for buttons and specific text
 };
 
 export const Spacing = {

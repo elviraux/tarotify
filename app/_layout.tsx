@@ -34,6 +34,7 @@ export default function RootLayout() {
   // Load custom fonts
   const [fontsLoaded] = Font.useFonts({
     'Achafexp': require('../assets/fonts/Achafexp.ttf'),
+    'SpaceMono-Regular': require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   // Initialize haptics preference cache on app start

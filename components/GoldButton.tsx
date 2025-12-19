@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     color: Colors.deepMidnightBlue,
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.mono,
   },
   outlineButton: {
     paddingVertical: Spacing.md,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     color: Colors.celestialGold,
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.mono,
   },
   disabled: {
     opacity: 0.5,

@@ -805,8 +805,8 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   typewriterText: {
-    fontSize: 30,
-    fontFamily: Fonts.heading,
+    fontSize: 18,
+    fontFamily: Fonts.mono,
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 26,
