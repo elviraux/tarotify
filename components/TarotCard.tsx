@@ -263,13 +263,13 @@ const styles = StyleSheet.create({
   cardName: {
     color: Colors.celestialGold,
     fontSize: 10,
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     textAlign: 'center',
     fontWeight: '600',
   },
   positionLabel: {
     color: Colors.textSecondary,
-    fontSize: 12,
+    fontSize: 16,
     fontFamily: Fonts.heading,
     marginTop: Spacing.sm,
     textTransform: 'uppercase',

@@ -39,8 +39,8 @@ export const Colors = {
 export const Fonts = {
   // Custom fonts loaded in _layout.tsx
   heading: 'Achafexp', // Mystical heading font
-  body: 'System',
-  accent: 'Achafexp',
+  body: 'SpaceMono-Regular',
+  accent: 'SpaceMono-Regular',
   mono: 'SpaceMono-Regular', // Technical/modern font for buttons and specific text
 };
 

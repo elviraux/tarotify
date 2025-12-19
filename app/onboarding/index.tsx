@@ -51,10 +51,12 @@ const INTENT_ICONS: Record<string, ImageSourcePropType> = {
 // Onboarding illustrations for specific steps
 const ONBOARDING_IMAGES: Record<number, ImageSourcePropType> = {
   1: require('../../assets/illustration/8.png'),
-  2: require('../../assets/illustration/SEER (3).png'),
-  5: require('../../assets/illustration/8.png'),
-  7: require('../../assets/illustration/5.png'),
-  10: require('../../assets/illustration/sun.png'),
+  2: require('../../assets/illustration/15.png'),
+  3: require('../../assets/illustration/23.png'),
+  4: require('../../assets/illustration/22.png'),
+  5: require('../../assets/illustration/21.png'),
+  7: require('../../assets/illustration/10.png'),
+  10: require('../../assets/illustration/17.png'),
 };
 
 // Welcome screen typewriter text
@@ -383,12 +385,12 @@ export default function OnboardingScreen() {
                 contentFit="contain"
               />
             </Animated.View>
-            <Text style={styles.hookHeadline}>Something is on{'\n'}your mind.</Text>
+            <Text style={styles.hookHeadline}>You did not arrive here by accident...</Text>
             <Animated.Text
               entering={FadeInUp.delay(600).duration(500)}
               style={styles.hookSub}
             >
-              Seer reveals what&apos;s unspoken.
+              Something has been stirring.
             </Animated.Text>
           </Animated.View>
         );
@@ -402,8 +404,17 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
-            <Text style={styles.heading}>What are you{'\n'}seeking?</Text>
-            <Text style={styles.subheading}>Choose what resonates with you</Text>
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainer}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[3]}
+                style={styles.stepIllustration}
+                contentFit="contain"
+              />
+            </Animated.View>
+            <Text style={styles.heading}>What are you{'\n'}seeking today?</Text>
             <View style={styles.intentGrid}>
               {INTENT_OPTIONS.map((option, index) => (
                 <Animated.View
@@ -445,8 +456,17 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(600)}
+              style={styles.illustrationContainer}
+            >
+              <Image
+                source={ONBOARDING_IMAGES[4]}
+                style={styles.stepIllustration}
+                contentFit="contain"
+              />
+            </Animated.View>
             <Text style={styles.heading}>When it comes to{'\n'}this connection...</Text>
-            <Text style={styles.subheading}>Select all that apply</Text>
             <View style={styles.feelingsList}>
               {FEELING_OPTIONS.map((option, index) => (
                 <Animated.View
@@ -498,13 +518,13 @@ export default function OnboardingScreen() {
               entering={FadeInUp.delay(400).duration(500)}
               style={styles.authorityText}
             >
-              Seer reads emotional patterns through tarot, astrology, and intuitive insight.
+              What's revealed is only the surface.
             </Animated.Text>
             <Animated.Text
               entering={FadeInUp.delay(600).duration(500)}
               style={styles.authorityTextSecondary}
             >
-              No judgment. No assumptions.{'\n'}Only what&apos;s relevant right now.
+              More lies beneath.
             </Animated.Text>
           </Animated.View>
         );
@@ -607,7 +627,7 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(300)}
             style={styles.stepContent}
           >
-            <Text style={styles.heading}>Hour of{'\n'}Arrival</Text>
+            {/* <Text style={styles.heading}>Hour of{'\n'}Arrival</Text> */}
             <Text style={styles.subheading}>What time were you born?</Text>
             <TimeWheelPicker
               value={state.timeOfBirth}
@@ -635,7 +655,7 @@ export default function OnboardingScreen() {
                 contentFit="contain"
               />
             </Animated.View>
-            <Text style={styles.heading}>Place of{'\n'}Origin</Text>
+            {/* <Text style={styles.heading}>Place of{'\n'}Origin</Text> */}
             <Text style={styles.subheading}>Where were you born?</Text>
             <View style={styles.inputContainer}>
               <MysticalInput
@@ -726,7 +746,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    fontSize: 36,
+    fontSize: 48,
     fontWeight: '600',
     fontFamily: Fonts.heading,
     color: Colors.textPrimary,
@@ -735,11 +755,11 @@ const styles = StyleSheet.create({
     lineHeight: 44,
   },
   subheading: {
-    fontSize: 24,
+    fontSize: 20,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.xl,
-    fontFamily: 'System',
+    fontFamily: Fonts.body,
     lineHeight: 24,
   },
   inputContainer: {
@@ -763,10 +783,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   hookSub: {
-    fontSize: 24,
+    fontSize: 18,
     color: Colors.celestialGold,
     textAlign: 'center',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     fontStyle: 'italic',
     lineHeight: 26,
     opacity: 0.9,
@@ -847,6 +867,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     lineHeight: 20,
+    fontFamily: Fonts.body
   },
   selectedIntentLabel: {
     color: Colors.celestialGold,
@@ -878,13 +899,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     fontWeight: '500',
+    fontFamily: Fonts.body
   },
   selectedFeelingLabel: {
     color: Colors.celestialGold,
   },
   // Authority screen styles
   authorityText: {
-    fontSize: 20,
+    fontSize: 48,
     fontFamily: Fonts.heading,
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -894,8 +916,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   authorityTextSecondary: {
-    fontSize: 18,
-    fontFamily: Fonts.heading,
+    fontSize: 20,
+    fontFamily: Fonts.body,
     fontStyle: 'italic',
     color: Colors.textSecondary,
     textAlign: 'center',
@@ -909,8 +931,8 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.3 }],
   },
   insightText: {
-    fontSize: 16,
-    fontFamily: Fonts.heading,
+    fontSize: 20,
+    fontFamily: Fonts.body,
     fontStyle: 'italic',
     color: Colors.celestialGold,
     textAlign: 'center',

@@ -290,9 +290,6 @@ CRITICAL: Output ONLY the JSON object. No text before or after. The analysis fie
             style={[styles.headerGradient, { paddingTop: insets.top + Spacing.lg }]}
           >
             <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-              <View style={styles.headerIcon}>
-                <Ionicons name="planet" size={32} color={Colors.celestialGold} />
-              </View>
               <Text style={styles.headerTitle}>Celestial Blueprint</Text>
               <Text style={styles.headerSubtitle}>Your Cosmic DNA</Text>
             </Animated.View>
@@ -513,7 +510,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(221, 133, 216, 0.3)',
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 48,
     fontWeight: '600',
     fontFamily: Fonts.heading,
     color: Colors.textPrimary,
@@ -529,12 +526,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: Colors.celestialGold,
     marginBottom: Spacing.md,
-    fontFamily: Fonts.heading,
     letterSpacing: 0.5,
+    fontFamily: Fonts.body
   },
   astroCards: {
     flexDirection: 'row',
@@ -555,6 +552,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
     textTransform: 'uppercase',
+    fontFamily: Fonts.body,
   },
   astroValue: {
     fontSize: 14,
@@ -565,6 +563,7 @@ const styles = StyleSheet.create({
   },
   astroValueUnknown: {
     color: Colors.moonlightGray,
+    fontFamily: Fonts.body,
     fontSize: 12,
   },
   astroHint: {
@@ -573,6 +572,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.sm,
     fontStyle: 'italic',
+    fontFamily: Fonts.body
   },
   numerologyRow: {
     flexDirection: 'row',
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     ...Shadows.glow,
   },
   numValue: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: '700',
     color: Colors.celestialGold,
     fontFamily: Fonts.heading,
@@ -608,6 +608,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     textTransform: 'uppercase',
+    fontFamily: Fonts.body
   },
   generateContainer: {
     alignItems: 'center',
@@ -622,7 +623,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.lg,
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     fontStyle: 'italic',
   },
   analysisWrapper: {

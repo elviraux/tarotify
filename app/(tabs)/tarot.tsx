@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: Colors.textSecondary,
     fontSize: 16,
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     marginTop: Spacing.md,
   },
   scrollView: {
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: '600',
     fontFamily: Fonts.heading,
     color: Colors.textPrimary,
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     marginTop: Spacing.sm,
-    fontFamily: 'System',
+    fontFamily: Fonts.body
   },
   segmentedControl: {
     flexDirection: 'row',
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
-    fontFamily: 'System',
+    fontFamily: Fonts.body
   },
   segmentButtonTextActive: {
     color: Colors.celestialGold,
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
     textAlign: 'center',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     lineHeight: 28,
     marginBottom: Spacing.xl,
   },
@@ -695,18 +695,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg + 4,
   },
   explanationTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     color: Colors.celestialGold,
     textAlign: 'center',
     marginBottom: Spacing.lg,
     letterSpacing: 0.5,
   },
   explanationText: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.textSecondary,
-    fontFamily: 'System',
+    fontFamily: Fonts.body,
     lineHeight: 26,
     textAlign: 'left',
     letterSpacing: 0.2,

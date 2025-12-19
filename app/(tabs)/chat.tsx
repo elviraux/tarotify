@@ -352,9 +352,7 @@ Respond with ONLY the JSON object:`;
         >
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.headerIcon}>
-              <Ionicons name="moon" size={24} color={Colors.celestialGold} />
-            </View>
+            
             <Text style={styles.headerTitle}>The Oracle</Text>
             <View style={styles.headerSubtitleContainer}>
               <Text style={styles.headerSubtitle}>Ask the Stars</Text>
@@ -459,7 +457,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: Colors.textSecondary,
-    fontSize: 16,
+    fontSize: 14,
     marginTop: Spacing.md,
     fontStyle: 'italic',
   },
@@ -479,7 +477,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: '600',
     fontFamily: Fonts.heading,
     color: Colors.textPrimary,
@@ -519,7 +517,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   messageText: {
-    fontSize: 15,
+    fontSize: 14,
     lineHeight: 22,
   },
   userText: {
@@ -527,7 +525,8 @@ const styles = StyleSheet.create({
   },
   aiText: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.heading,
+    // fontFamily: Fonts.body,
+    fontSize: 14
   },
   typingContainer: {
     flexDirection: 'row',
@@ -562,6 +561,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.textPrimary,
     fontSize: 16,
+    // fontFamily: Fonts.accent,
     maxHeight: 100,
     paddingVertical: Spacing.sm,
   },

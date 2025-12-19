@@ -229,12 +229,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
-    fontFamily: 'System',
+    fontFamily: Fonts.body
   },
   userName: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: '600',
     color: Colors.celestialGold,
     fontFamily: Fonts.heading,
@@ -245,9 +245,9 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   heroTitle: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '600',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     color: Colors.textPrimary,
     lineHeight: 42,
   },
@@ -288,9 +288,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featuredTitle: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '600',
-    fontFamily: Fonts.heading,
+    fontFamily: Fonts.body,
     color: Colors.textPrimary,
     marginBottom: 4,
   },
@@ -312,6 +312,7 @@ const styles = StyleSheet.create({
     color: Colors.celestialGold,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    fontFamily: Fonts.body
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.textPrimary,
-    fontFamily: 'System',
+fontFamily: Fonts.body,
     marginBottom: 2,
     textAlign: 'center',
   },
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   quoteText: {
-    fontSize: 15,
+    fontSize: 30,
     fontStyle: 'italic',
     color: Colors.moonlightGray,
     textAlign: 'center',

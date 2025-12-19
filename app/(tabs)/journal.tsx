@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   title: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: '600',
     fontFamily: Fonts.heading,
     color: Colors.celestialGold,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     marginTop: Spacing.xs,
-    fontFamily: 'System',
+    fontFamily: Fonts.body
   },
   listContent: {
     paddingHorizontal: Spacing.md,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   historyDate: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
     fontFamily: Fonts.heading,
     color: Colors.celestialGold,
@@ -416,9 +416,9 @@ const styles = StyleSheet.create({
   historySummary: {
     fontSize: 14,
     color: Colors.textSecondary,
-    fontFamily: 'System',
     lineHeight: 20,
     paddingRight: Spacing.xl,
+    fontFamily: Fonts.body
   },
   arrowContainer: {
     position: 'absolute',
