@@ -29,6 +29,7 @@ import {
   saveToHistory,
 } from '@/utils/storage';
 import { formatDateLong } from '@/utils/formatDate';
+import { trackReadingCompletion } from '@/utils/rating';
 import { UserProfile, DailyReading, CardReading, TarotCard as TarotCardData } from '@/types';
 import { useTextGeneration } from '@fastshot/ai';
 import { getCardImageUri } from '@/utils/imageStorage';
@@ -142,6 +143,8 @@ export default function TarotScreen() {
     } else {
       await saveDailyReading(reading);
       await saveToHistory(reading);
+      // Track reading completion for app review prompt (only for personal readings)
+      await trackReadingCompletion();
     }
     setDailyReading(reading);
 
